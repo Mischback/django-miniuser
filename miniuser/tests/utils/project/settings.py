@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'miniuser.apps.MiniUserConfig'
 ]
 
-AUTH_USER_MODEL='miniuser.MiniUser'
+AUTH_USER_MODEL = 'miniuser.MiniUser'
 
 # this is a minimum test requirement
 SECRET_KEY = 'only-for-testing'

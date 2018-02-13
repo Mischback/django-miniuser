@@ -32,6 +32,7 @@ coverage: ensure_virtual_env test
 clean:
 	@find . -iname "*.pyc" -delete
 	@find . -iname "__pycache__" -delete
+	@find . -iname "test.sqlite" -delete
 	@rm -rf .coverage coverage_html
 
 

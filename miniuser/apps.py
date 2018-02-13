@@ -20,17 +20,8 @@ class MiniUserConfig(AppConfig):
     name = 'miniuser'
     verbose_name = 'MiniUser'
 
-    def __init__(self, app_name, app_module):
-        """Overriding the constructor to apply app specific settings into
-        Django's setting module.
-
-        This is necessary, because some of these settings are used in the
-        definition of models.
-
-        TODO: Find a way around that and move the injection into ready()"""
-
-        # call the parent constructor
-        super(MiniUserConfig, self).__init__(app_name, app_module)
+    def ready(self):
+        """Executed, when application loading is completed"""
 
         # setting some app specific (default) settings
         set_app_default_setting('MINIUSER_DEFAULT_ACTIVE', True)
@@ -38,10 +29,6 @@ class MiniUserConfig(AppConfig):
 
         set_app_default_setting('MINIUSER_LOGIN_NAME', 'username')
         """Determines, if users can log in with
-            a) their username,
-            b) their email-address or
-            c) both."""
-
-    def ready(self):
-        """Executed, when application loading is completed"""
-        pass
+            a) their username (-> 'username'),
+            b) their email-address (-> 'mail') or
+            c) both (-> 'both')."""

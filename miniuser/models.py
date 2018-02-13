@@ -23,12 +23,19 @@ class MiniUserManager(BaseUserManager):
         if not email:
             raise ValueError(_('The email address must be set!'))
 
+        # normalize username and email
+        username = self.model.normalize_username(username)
         email = self.normalize_email(email).lower()
+
+        # apply the app setting, if the user is active on creation
+        fields = {
+            'is_active': settings.MINIUSER_DEFAULT_ACTIVE,
+        }
+        fields.update(extra_fields)
 
         user = self.model(
             username=username,
             email=email,
-            last_login=timezone.now(),
             **extra_fields
         )
         user.set_password(password)
@@ -39,9 +46,14 @@ class MiniUserManager(BaseUserManager):
     def create_superuser(self, username, email, password, **extra_fields):
         """Creates a new superuser."""
 
+        # apply the app setting, if the user is active on creation
+        # Since this is a superuser, we hardcode an active account!
+        # Furthermore, is_staff and is_superuser are set, this is taken from
+        # Django's UserManager class.
         fields = {
             'is_staff': True,
             'is_superuser': True,
+            'is_active': True,
         }
         fields.update(extra_fields)
 
@@ -50,6 +62,14 @@ class MiniUserManager(BaseUserManager):
         return user
 
     def get_by_natural_key(self, input):
+        """Retrieves a single user by a unique field.
+
+        This method is used during Django's authentication process to retrieve
+        the user. See django.contrib.auth.backends ModelBackend class.
+
+        Depending on the app's settings, the user-object can be retrieved by
+        its username, its mail address or both."""
+
         if settings.MINIUSER_LOGIN_NAME == 'both':
             # TODO: look for email = input AND username = input
             pass
@@ -106,7 +126,7 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(
         _('active'),
-        default=settings.MINIUSER_DEFAULT_ACTIVE,
+        default=False,
         help_text=_(
             'Designates whether this user should be treated as active. '
             'Unselect this instead of deleting accounts.'
