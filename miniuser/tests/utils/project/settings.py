@@ -18,5 +18,14 @@ DATABASES = {
     }
 }
 
+# minimum installed apps t make MiniUser work
+INSTALLED_APPS = [
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'miniuser.apps.MiniUserConfig'
+]
+
+AUTH_USER_MODEL='miniuser.MiniUser'
+
 # this is a minimum test requirement
 SECRET_KEY = 'only-for-testing'

@@ -9,7 +9,7 @@ DJANGO_TEST_POSTFIX := --settings=$(DJANGO_TEST_SETTINGS) --pythonpath=$(PYTHONP
 
 
 .PHONY: all clean coverage ensure_virtual_env flake8 flake lint \
-		test
+		test migrations
 
 
 all:
@@ -51,6 +51,14 @@ flake8: ensure_virtual_env
 flake: flake8
 
 lint: flake8
+
+
+# creates the necessary migrations
+#	this should be done after any model changes
+#	TODO: Create initial migration before first release!
+#	this uses the TEST settings!
+migrations: ensure_virtual_env
+	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_TEST_POSTFIX)
 
 
 # runs the tests
