@@ -20,7 +20,7 @@ class MiniUserManager(BaseUserManager):
         if not username:
             raise ValueError(_('The username must be set!'))
 
-        if not email:
+        if settings.MINIUSER_REQUIRE_VALID_EMAIL and not email:
             raise ValueError(_('The email address must be set!'))
 
         # normalize username and email

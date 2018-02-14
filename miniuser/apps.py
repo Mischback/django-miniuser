@@ -4,6 +4,10 @@
 # Django imports
 from django.apps import AppConfig
 from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
+
+# app imports
+from .exceptions import MiniUserConfigurationException
 
 
 def set_app_default_setting(name, default_value):
@@ -30,5 +34,21 @@ class MiniUserConfig(AppConfig):
         set_app_default_setting('MINIUSER_LOGIN_NAME', 'username')
         """Determines, if users can log in with
             a) their username (-> 'username'),
-            b) their email-address (-> 'mail') or
+            b) their email-address (-> 'email') or
             c) both (-> 'both')."""
+
+        set_app_default_setting('MINIUSER_REQUIRE_VALID_EMAIL', False)
+        """Determines, if users must provide a valid email address. This also
+        controls, if validation mails will be sent.
+
+        Please note the connection with MINIUSER_LOGIN_NAME. If that setting is
+        set to 'email', MINIUSER_REQUIRE_VALID_EMAIL has to be True."""
+
+        # checking for some dependencies of the settings
+        if (settings.MINIUSER_LOGIN_NAME == 'email' and settings.MINIUSER_REQUIRE_VALID_EMAIL is False):
+            raise MiniUserConfigurationException(
+                _(
+                    "Configuration mismatch! For MINIUSER_LOGIN_NAME = 'email'"
+                    "MINIUSER_REQUIRE_VALID_EMAIL is required to be True"
+                )
+            )
