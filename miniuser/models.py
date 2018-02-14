@@ -71,8 +71,13 @@ class MiniUserManager(BaseUserManager):
         its username, its mail address or both."""
 
         if settings.MINIUSER_LOGIN_NAME == 'both':
-            # TODO: look for email = input AND username = input
-            pass
+            try:
+                user = self.get(username__iexact=input)
+            except MiniUser.DoesNotExist:
+                user = self.get(email__iexact=input)
+                # TODO: ok, the email is now used just like a username. Is this correct?
+                #   Shouldn't the email be validated to be used as username?
+            return user
         if settings.MINIUSER_LOGIN_NAME == 'username':
             return self.get(username__iexact=input)
         if settings.MINIUSER_LOGIN_NAME == 'email':
@@ -102,6 +107,8 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
         _('email address'),
         max_length=508,
         unique=True,
+        blank=True,
+        null=True,
         error_messages={
             'unique': _('This mail address is already in use....')
         }

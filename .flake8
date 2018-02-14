@@ -4,6 +4,7 @@ exclude =
     doc,
     __pycache__,
     .tox,
+    migrations,
 
 ignore =
     # as per Django's Coding Style

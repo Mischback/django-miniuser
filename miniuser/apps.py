@@ -45,10 +45,10 @@ class MiniUserConfig(AppConfig):
         set to 'email', MINIUSER_REQUIRE_VALID_EMAIL has to be True."""
 
         # checking for some dependencies of the settings
-        if (settings.MINIUSER_LOGIN_NAME == 'email' and settings.MINIUSER_REQUIRE_VALID_EMAIL is False):
+        if (settings.MINIUSER_REQUIRE_VALID_EMAIL is True and settings.MINIUSER_DEFAULT_ACTIVE is True):
             raise MiniUserConfigurationException(
                 _(
-                    "Configuration mismatch! For MINIUSER_LOGIN_NAME = 'email'"
-                    "MINIUSER_REQUIRE_VALID_EMAIL is required to be True"
+                    "Configuration mismatch! MINIUSER_REQUIRE_VALID_EMAIL = True implies"
+                    "MINIUSER_DEFAULT_ACTIVE = False"
                 )
             )
