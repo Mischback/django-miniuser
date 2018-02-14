@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """miniuser's models"""
 
+# Python imports
+from __future__ import unicode_literals
+
 # Django imports
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -8,6 +11,7 @@ from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -84,6 +88,7 @@ class MiniUserManager(BaseUserManager):
             return self.get(email__iexact=input)
 
 
+@python_2_unicode_compatible
 class MiniUser(AbstractBaseUser, PermissionsMixin):
     """The user class extends the AbstractBaseUser and adds some custom fields
     to the default Django user."""
@@ -180,3 +185,6 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+
+    def __str__(self):
+        return self.get_username()
