@@ -6,6 +6,8 @@ source =
     miniuser
 omit =
     */__init__.py
+    */tests/*
+    */migrations/*
 
 [report]
 precision = 1
