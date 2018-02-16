@@ -111,6 +111,36 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertTrue(m.is_staff)
         self.assertTrue(m.is_superuser)
 
+    @override_settings(MINIUSER_LOGIN_NAME='username')
+    def test_natural_key_username(self):
+        """Get a user by its username
+
+        The user is retrieved by its username and is not retrievable by its
+        mail address."""
+        m = MiniUser.objects.create_user(username='foo', email='foo@bar.com')
+        self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo'))
+        with self.assertRaises(MiniUser.DoesNotExist):
+            n = MiniUser.objects.get_by_natural_key('foo@bar.com') # noqa
+
+    @override_settings(MINIUSER_LOGIN_NAME='email')
+    def test_natural_key_email(self):
+        """Get a user by its email address
+
+        The user is retrieved by its email address and is not retrievable by its
+        username."""
+        m = MiniUser.objects.create_user(username='foo', email='foo@bar.com')
+        self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo@bar.com'))
+        with self.assertRaises(MiniUser.DoesNotExist):
+            n = MiniUser.objects.get_by_natural_key('foo') # noqa
+
+    @override_settings(MINIUSER_LOGIN_NAME='both')
+    def test_natural_key_both(self):
+        """Get a user by its username or email address
+
+        The user is retrieved by its username and its email address."""
+        m = MiniUser.objects.create_user(username='foo', email='foo@bar.com')
+        self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo'))
+        self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo@bar.com'))
 
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""

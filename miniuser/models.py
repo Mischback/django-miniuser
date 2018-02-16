@@ -85,9 +85,9 @@ class MiniUserManager(BaseUserManager):
                 # TODO: ok, the email is now used just like a username. Is this correct?
                 #   Shouldn't the email be validated to be used as username?
             return user
-        if settings.MINIUSER_LOGIN_NAME == 'username':
+        elif settings.MINIUSER_LOGIN_NAME == 'username':
             return self.get(username__iexact=input)
-        if settings.MINIUSER_LOGIN_NAME == 'email':
+        elif settings.MINIUSER_LOGIN_NAME == 'email':
             return self.get(email__iexact=input)
 
 
