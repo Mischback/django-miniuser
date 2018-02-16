@@ -5,6 +5,7 @@ exclude =
     __pycache__,
     .tox,
     migrations,
+    */tests/utils/project/settings.py,
 
 ignore =
     # as per Django's Coding Style

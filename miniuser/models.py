@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 class MiniUserManager(BaseUserManager):
     """Management class for MiniUser objects"""
 
-    def create_user(self, username, email, password=None, **extra_fields):
+    def create_user(self, username, email=None, password=None, **extra_fields):
         """Creates a new user."""
 
         if not username:
@@ -31,18 +31,23 @@ class MiniUserManager(BaseUserManager):
         username = self.model.normalize_username(username)
         email = self.normalize_email(email).lower()
 
-        # apply the app setting, if the user is active on creation
-        fields = {
-            'is_active': settings.MINIUSER_DEFAULT_ACTIVE,
-        }
-        fields.update(extra_fields)
-
         user = self.model(
             username=username,
             email=email,
             **extra_fields
         )
+
+        # set the password
+        # TODO: Is some sort of validation included?
         user.set_password(password)
+
+        # apply the app's activation mode
+        user.is_active = settings.MINIUSER_DEFAULT_ACTIVE
+
+        # deactivate user without usable passwords
+        if not user.has_usable_password():
+            user.is_active = False
+
         user.save(using=self._db)
 
         return user
@@ -50,18 +55,16 @@ class MiniUserManager(BaseUserManager):
     def create_superuser(self, username, email, password, **extra_fields):
         """Creates a new superuser."""
 
+        user = self.create_user(username, email, password, **extra_fields)
+
         # apply the app setting, if the user is active on creation
         # Since this is a superuser, we hardcode an active account!
         # Furthermore, is_staff and is_superuser are set, this is taken from
         # Django's UserManager class.
-        fields = {
-            'is_staff': True,
-            'is_superuser': True,
-            'is_active': True,
-        }
-        fields.update(extra_fields)
-
-        user = self.create_user(username, email, password, **fields)
+        user.is_active = True
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
 
         return user
 
