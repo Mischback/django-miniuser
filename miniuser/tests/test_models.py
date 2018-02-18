@@ -142,6 +142,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo'))
         self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo@bar.com'))
 
+
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""
 
