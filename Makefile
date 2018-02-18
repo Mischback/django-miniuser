@@ -4,7 +4,9 @@ LOCALPATH := ./
 PYTHONPATH := $(LOCALPATH)/
 PYTHON_BIN := $(VIRTUAL_ENV)/bin
 
-DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.settings
+DJANGO_DEV_SETTINGS := miniuser.tests.utils.project.development
+DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
+DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.testing
 DJANGO_TEST_POSTFIX := --settings=$(DJANGO_TEST_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 
@@ -59,7 +61,7 @@ lint: flake8
 #	TODO: Create initial migration before first release!
 #	this uses the TEST settings!
 migrations: ensure_virtual_env
-	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_TEST_POSTFIX)
+	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
 
 
 # runs the tests
