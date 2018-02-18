@@ -35,7 +35,7 @@ clean:
 	@find . -iname "*.pyc" -delete
 	@find . -iname "__pycache__" -delete
 	@find . -iname "test.sqlite" -delete
-	@rm -rf .coverage coverage_html
+	@rm -rf .coverage .coverage_html
 
 
 # most of the commands can only be used inside of the virtual environment
