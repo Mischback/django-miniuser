@@ -4,30 +4,32 @@ LOCALPATH := ./
 PYTHONPATH := $(LOCALPATH)/
 PYTHON_BIN := $(VIRTUAL_ENV)/bin
 
-DJANGO_DEV_SETTINGS := miniuser.tests.utils.project.development
+DJANGO_DEV_SETTINGS := miniuser.tests.utils.project.settings_dev
 DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
-DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.testing
+DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.settings_test
 DJANGO_TEST_POSTFIX := --settings=$(DJANGO_TEST_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 
-.PHONY: all clean coverage ensure_virtual_env flake8 flake lint \
-		test migrations
+.PHONY: all clean coverage ensure_virtual_env flake8 flake \
+		migrations test
 
 
 all:
-	@echo "Hello $(LOGNAME)! Welcome to django-app-skeleton"
 	@echo ""
-	@echo "  clean     Removes all temporary files"
-	@echo "  coverage  Runs the tests and shows code coverage"
-	@echo "  flake8    Runs flake8 to check for PEP8 compliance"
-	@echo "              = flake / lint"
-	@echo "  test      Runs the tests"
+	@echo " Hello $(LOGNAME)! Welcome to django-$(APP)"
+	@echo ""
+	@echo "   clean      Removes all temporary files"
+	@echo "   coverage   Runs the tests and shows code coverage"
+	@echo "   flake8     Runs flake8 to check for PEP8 compliance (alias: flake)"
+	@echo "   migrations Creates the migrations for the app $(APP)"
+	@echo "   test       Runs the tests"
+	@echo ""
 
 
 # performs the tests and measures code coverage
 coverage: ensure_virtual_env test
-	$(PYTHON_BIN)/coverage html
-	$(PYTHON_BIN)/coverage report
+	# $(PYTHON_BIN)/coverage html
+	@$(PYTHON_BIN)/coverage report
 
 
 # deletes all temporary files created by Django
@@ -49,22 +51,17 @@ ensure_virtual_env:
 
 # runs flake8 to check for PEP8 compliance
 flake8: ensure_virtual_env
-	$(PYTHON_BIN)/flake8 .
+	@$(PYTHON_BIN)/flake8 .
 
 flake: flake8
-
-lint: flake8
 
 
 # creates the necessary migrations
 #	this should be done after any model changes
-#	TODO: Create initial migration before first release!
-#	this uses the TEST settings!
 migrations: ensure_virtual_env
 	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
 
 
 # runs the tests
-#	While we just have a bare project layout, this is more or less a dummy.
 test: ensure_virtual_env
 	@$(PYTHON_BIN)/coverage run $(PYTHON_BIN)/django-admin.py test $(APP) $(DJANGO_TEST_POSTFIX)
