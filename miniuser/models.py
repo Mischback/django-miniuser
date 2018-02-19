@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 # Django imports
 from django.conf import settings
+from django.contrib.admin import ModelAdmin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -191,3 +192,8 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.get_username()
+
+
+class MiniUserAdmin(ModelAdmin):
+    """Represents MiniUser in Django's admin interface"""
+    pass

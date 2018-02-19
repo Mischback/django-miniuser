@@ -20,6 +20,7 @@ DATABASES = {
 
 # minimum installed apps to make MiniUser work
 INSTALLED_APPS = [
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'miniuser.apps.MiniUserConfig'
