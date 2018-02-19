@@ -5,13 +5,11 @@
 from unittest import skip # noqa
 
 # Django imports
-from django.apps import AppConfig
 from django.conf import settings
 from django.test import override_settings
 
 # app imports
 from ..apps import set_app_default_setting
-from ..exceptions import MiniUserConfigurationException
 from .utils.testcases import MiniuserTestCase
 
 
@@ -48,20 +46,3 @@ class MiniUserConfigTest(MiniuserTestCase):
         set_app_default_setting('test_setting', 'foo')
         with self.assertRaises(AttributeError):
             self.assertEqual(settings.test_setting, 'foo')
-
-    @skip('TODO: not working')
-    @override_settings(MINIUSER_DEFAULT_ACTIVE=True)
-    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
-    def test_setting_constraints(self):
-        """Invalid setting combinations raise MiniUserConfigurationException
-
-        """
-        # self.assertEqual(settings.MINIUSER_DEFAULT_ACTIVE, True)
-        # self.assertEqual(settings.MINIUSER_REQUIRE_VALID_EMAIL, True)
-        with self.assertRaisesMessage(
-            MiniUserConfigurationException,
-            "fooConfiguration mismatch! MINIUSER_REQUIRE_VALID_EMAIL = True implies"
-            "MINIUSER_DEFAULT_ACTIVE = False",
-        ):
-            c = AppConfig.create('miniuser')
-            c.ready()
