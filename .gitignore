@@ -5,9 +5,12 @@ __python__/*
 # do NOT track tox's testing folder
 .tox
 
+# do NOT track the test database
+test.sqlite
+
 # do NOT track coverage files/folders
 .coverage
-coverage_html
+.coverage_html
 
 # do NOT track compiled language files
 *.mo

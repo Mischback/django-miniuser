@@ -5,6 +5,7 @@
 from django.contrib import admin
 
 # app imports
+from .models import MiniUser, MiniUserAdmin
 
 
-# admin.site.register([modelclass], [modelclassadmin])
+admin.site.register(MiniUser, MiniUserAdmin)

@@ -6,10 +6,13 @@ source =
     miniuser
 omit =
     */__init__.py
+    */tests/*
+    */migrations/*
+    */tests/utils/*
 
 [report]
 precision = 1
 show_missing = True
 
 [html]
-directory = coverage_html
+directory = .coverage_html
