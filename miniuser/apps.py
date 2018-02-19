@@ -4,10 +4,89 @@
 # Django imports
 from django.apps import AppConfig
 from django.conf import settings
+from django.core.checks import Error, Warning, register
 from django.utils.translation import ugettext_lazy as _
 
-# app imports
-from .exceptions import MiniUserConfigurationException
+
+E001 = Error(
+    _("MINIUSER_DEFAULT_ACTIVE has to be True or False."),
+    hint=_(
+        "Please check your settings and ensure, that you put a boolean value "
+        "to this setting."),
+    id='miniuser.e001',
+)
+
+E002 = Error(
+    _("MINIUSER_LOGIN_NAME has to be one of 'username', 'email' or 'both'."),
+    hint=_(
+        "Please check your settings and ensure, that MINIUSER_LOGIN NAME is one "
+        "of 'username', 'email' or 'both'. Please note, that these values are "
+        "given as strings."
+    ),
+    id='miniuser.e002',
+)
+
+E003 = Error(
+    _("MINIUSER_REQUIRE_VALID_EMAIL has to be True or False."),
+    hint=_(
+        "Please check your settings and ensure, that you put a boolean value "
+        "to this setting."),
+    id='miniuser.e003',
+)
+
+E004 = Error(
+    _("Values of MINIUSER_REQUIRE_VALID_EMAIL and MINIUSER_DEFAULT_ACTIVE do not match."),
+    hint=_(
+        "MINIUSER_REQUIRE_VALID_EMAIL = True implies MINIUSER_DEFAULT_ACTIVE = False. "
+        "Check your settings!"
+    ),
+    id='miniuser.e004',
+)
+
+W001 = Warning(
+    _("LOGIN_URL is *not* 'miniuser:login'."),
+    hint=_(
+        "If you want to use MiniUsers login-functions, add LOGIN_URL to your "
+        "settings or modify its setting to 'miniuser:login'."
+    ),
+    id='miniuser.w001',
+)
+
+
+def check_correct_values(app_configs, **kwargs):
+    """Checks, if all app specific settings have defined values"""
+
+    errors = []
+
+    if not isinstance(settings.MINIUSER_DEFAULT_ACTIVE, bool):
+        errors.append(E001)
+    if settings.MINIUSER_LOGIN_NAME not in ('username', 'email', 'both'):
+        errors.append(E002)
+    if not isinstance(settings.MINIUSER_REQUIRE_VALID_EMAIL, bool):
+        errors.append(E003)
+
+    return errors
+
+
+def check_configuration_constraints(app_configs, **kwargs):
+    """Checks, if the settings fullfill some (logical) constraints"""
+
+    errors = []
+
+    if settings.MINIUSER_REQUIRE_VALID_EMAIL and settings.MINIUSER_DEFAULT_ACTIVE:
+        errors.append(E004)
+
+    return errors
+
+
+def check_configuration_recommendations(app_configs, **kwargs):
+
+    errors = []
+
+    if settings.LOGIN_URL != 'miniuser:login':
+        errors.append(W001)
+
+    return errors
 
 
 def set_app_default_setting(name, default_value):
@@ -78,18 +157,11 @@ class MiniUserConfig(AppConfig):
         Just in case somebody messed up his Django seriously, a sane default
         is provided here."""
 
-        # checking for some dependencies of the settings
-        if (settings.MINIUSER_REQUIRE_VALID_EMAIL is True and settings.MINIUSER_DEFAULT_ACTIVE is True):
-            raise MiniUserConfigurationException(
-                _(
-                    "Configuration mismatch! MINIUSER_REQUIRE_VALID_EMAIL = True implies"
-                    "MINIUSER_DEFAULT_ACTIVE = False"
-                )
-            )
+        # checking, if all app specific settings got acceptable values
+        register(check_correct_values)
 
-        # in DEBUG-mode, notify the user possible problems with the settings
-        if settings.DEBUG:
-            # check LOGIN_URL
-            if settings.LOGIN_URL != 'miniuser:login':
-                # raise a Django warning!
-                pass
+        # check recommendations
+        register(check_configuration_recommendations)
+
+        # checking for some dependencies of the settings
+        register(check_configuration_constraints)
