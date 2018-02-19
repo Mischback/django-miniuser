@@ -39,10 +39,44 @@ class MiniUserConfig(AppConfig):
 
         set_app_default_setting('MINIUSER_REQUIRE_VALID_EMAIL', False)
         """Determines, if users must provide a valid email address. This also
-        controls, if validation mails will be sent.
+        controls, if validation mails will be sent."""
 
-        Please note the connection with MINIUSER_LOGIN_NAME. If that setting is
-        set to 'email', MINIUSER_REQUIRE_VALID_EMAIL has to be True."""
+        set_app_default_setting('LOGIN_URL', 'miniuser:login')
+        """Set the app's login as the default login view.
+
+        Please note, that Django already provides a value for this setting by
+        default ('/accounts/login/'), so you have to override this value
+        in your project's settings.
+            LOGIN_URL = 'miniuser:login'
+
+        Just in case somebody messed up his Django seriously, a sane default
+        is provided here."""
+
+        set_app_default_setting('LOGIN_REDIRECT_URL', '/')
+        """Set a default redirect for successful logins.
+
+        Please note, that Django already provides a value for this setting by
+        default ('/accounts/profile/'), so you have to override this value
+        in your project's settings.
+            LOGIN_REDIRECT_URL = '/'
+        You may specify other default redirects, obviously.
+
+        Just in case somebody messed up his Django seriously, a sane default
+        is provided here."""
+
+        set_app_default_setting('LOGOUT_REDIRECT_URL', 'miniuser:login')
+        """Set a default redirect for logouts. This will redirect the user to
+        the login page.
+
+        Please note, that Django already provides a value for this setting by
+        default (None), so you have to override this value in your project's
+        settings.
+            LOGOUT_REDIRECT_URL = 'miniuser:login'
+        You may specify other default redirects, obviously. Django's 'None'
+        will render the logout template.
+
+        Just in case somebody messed up his Django seriously, a sane default
+        is provided here."""
 
         # checking for some dependencies of the settings
         if (settings.MINIUSER_REQUIRE_VALID_EMAIL is True and settings.MINIUSER_DEFAULT_ACTIVE is True):
@@ -52,3 +86,10 @@ class MiniUserConfig(AppConfig):
                     "MINIUSER_DEFAULT_ACTIVE = False"
                 )
             )
+
+        # in DEBUG-mode, notify the user possible problems with the settings
+        if settings.DEBUG:
+            # check LOGIN_URL
+            if settings.LOGIN_URL != 'miniuser:login':
+                # raise a Django warning!
+                pass
