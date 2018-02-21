@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+{% if form.errors %}
+<div class="form_errors">Your username and password didn't match. Please try again.</div>
+{% endif %}
+{% if next %}
+  {% if user.is_authenticated %}
+<div class="form_errors">Your account doesn't have access to this page. To proceed, please login with an account that has access.</div>
+  {% else %}
+<div class="form_errors">Please login to see this page.</div>
+  {% endif %}
+{% endif %}
+<div class="login_form">
+  <form method="post" action="{% url 'miniuser:login' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
+    <div class="input-box username-box">
+      <span class="label">Username</span>
+      {{ form.username }}
+    </div>
+    <div class="input-box password-box">
+      <span class="label">Password</span>
+      {{ form.password }}
+    </div>
+    <div class="button-box submit-box">
+      <input type="submit" value="login" />
+    </div>
+  </form>
+  <div class="lost-password-box"><a href="#">Lost password?</a></div>
+</div>
+{% endblock %}
