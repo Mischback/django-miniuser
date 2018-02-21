@@ -5,7 +5,10 @@
 from django.contrib import admin
 
 # app imports
-from .models import MiniUser, MiniUserAdmin
+from .models import MiniUser
 
 
-admin.site.register(MiniUser, MiniUserAdmin)
+@admin.register(MiniUser)
+class MiniUserAdmin(admin.ModelAdmin):
+    """Represents MiniUser in Django's admin interface"""
+    pass
