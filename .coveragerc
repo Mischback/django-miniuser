@@ -6,7 +6,6 @@ source =
     miniuser
 omit =
     */__init__.py
-    */tests/*
     */migrations/*
     */tests/utils/*
 

@@ -26,7 +26,14 @@ INSTALLED_APPS = [
     'miniuser.apps.MiniUserConfig'
 ]
 
+# apply our own user model
 AUTH_USER_MODEL = 'miniuser.MiniUser'
+
+# we need a test specific url configuration
+ROOT_URLCONF = 'miniuser.tests.utils.project.urls'
+
+# respect app specific warning
+LOGIN_URL = 'miniuser:login'
 
 # this is a minimum test requirement
 SECRET_KEY = 'only-for-testing'
