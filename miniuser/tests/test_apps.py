@@ -10,8 +10,9 @@ from django.test import override_settings
 
 # app imports
 from ..apps import (
-    E001, E002, E003, E004, W001, check_correct_values, check_configuration_constraints,
-    check_configuration_recommendations, set_app_default_setting
+    E001, E002, E003, E004, E005, E006, E007, E008, W001,
+    check_correct_values, check_configuration_constraints, check_configuration_recommendations,
+    set_app_default_setting
 )
 from .utils.testcases import MiniuserTestCase
 
@@ -74,6 +75,30 @@ class MiniUserConfigTest(MiniuserTestCase):
         """MINIUSER_DEFAULT_ACTIVE and MINIUSER_REQUIRE_VALID_EMAIL must not be both True"""
         errors = check_configuration_constraints(None)
         self.assertEqual(errors, [E004])
+
+    @override_settings(MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER='#112233foo')
+    def test_check_e005(self):
+        """MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER must be a hexadecimal color code"""
+        errors = check_correct_values(None)
+        self.assertEqual(errors, [E005])
+
+    @override_settings(MINIUSER_ADMIN_STATUS_COLOR_STAFF='foo#112233')
+    def test_check_e006(self):
+        """MINIUSER_ADMIN_STATUS_COLOR_STAFF must be a hexadecimal color code"""
+        errors = check_correct_values(None)
+        self.assertEqual(errors, [E006])
+
+    @override_settings(MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER='foo')
+    def test_check_e007(self):
+        """MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be one single char"""
+        errors = check_correct_values(None)
+        self.assertEqual(errors, [E007])
+
+    @override_settings(MINIUSER_ADMIN_STATUS_CHAR_STAFF='')
+    def test_check_e008(self):
+        """MINIUSER_ADMIN_STATUS_CHAR_STAFF must be one single char"""
+        errors = check_correct_values(None)
+        self.assertEqual(errors, [E008])
 
     @override_settings(LOGIN_URL='/')
     def test_check_w001(self):

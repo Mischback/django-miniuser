@@ -2,6 +2,7 @@
 """miniuser's admin integration"""
 
 # Django imports
+from django.conf import settings
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -97,11 +98,10 @@ class MiniUserAdmin(admin.ModelAdmin):
     def username_color_status(self, obj):
         """Returns a colored username according to his status (HTML)"""
 
-        # TODO: Make this hardcoded values configurable within settings
         if obj.is_superuser:
-            color = '#cc0000'
+            color = settings.MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER
         elif obj.is_staff:
-            color = '#00cc00'
+            color = settings.MINIUSER_ADMIN_STATUS_COLOR_STAFF
         else:
             return obj.username
 
@@ -114,9 +114,9 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         # TODO: Make this hardcoded values configurable in settings
         if obj.is_superuser:
-            status = '#'
+            status = settings.MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER
         elif obj.is_staff:
-            status = '~'
+            status = settings.MINIUSER_ADMIN_STATUS_CHAR_STAFF
         else:
             return obj.username
 

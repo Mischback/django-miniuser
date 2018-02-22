@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Application configuration"""
 
+# Python imports
+import re
+
 # Django imports
 from django.apps import AppConfig
 from django.conf import settings
@@ -38,9 +41,47 @@ E004 = Error(
     _("Values of MINIUSER_REQUIRE_VALID_EMAIL and MINIUSER_DEFAULT_ACTIVE do not match."),
     hint=_(
         "MINIUSER_REQUIRE_VALID_EMAIL = True implies MINIUSER_DEFAULT_ACTIVE = False. "
-        "Check your settings!"
+        "Please check your settings!"
     ),
     id='miniuser.e004',
+)
+
+E005 = Error(
+    _("Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER is not a valid RGB color code."),
+    hint=_(
+        "Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER has to be of the form "
+        "'#rrggbb', where r, g and b may be hexadecimal digits (0-F). Please "
+        "note the '#'."
+    ),
+    id='miniuser.e005',
+)
+
+E006 = Error(
+    _("Value of MINIUSER_ADMIN_STATUS_COLOR_STAFF is not a valid RGB color code."),
+    hint=_(
+        "Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER has to be of the form "
+        "'#rrggbb', where r, g and b may be hexadecimal digits (0-F). Please "
+        "note the '#'."
+    ),
+    id='miniuser.e006',
+)
+
+E007 = Error(
+    _("Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER is not valid."),
+    hint=_(
+        "Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be a single "
+        "chraracter. Please check your settings!"
+    ),
+    id='miniuser.e007',
+)
+
+E008 = Error(
+    _("Value of MINIUSER_ADMIN_STATUS_CHAR_STAFF is not valid."),
+    hint=_(
+        "Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be a single "
+        "chraracter. Please check your settings!"
+    ),
+    id='miniuser.e008',
 )
 
 W001 = Warning(
@@ -64,6 +105,14 @@ def check_correct_values(app_configs, **kwargs):
         errors.append(E002)
     if not isinstance(settings.MINIUSER_REQUIRE_VALID_EMAIL, bool):
         errors.append(E003)
+    if not re.match('^#[0-9A-Fa-f]{6}$', settings.MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER):
+        errors.append(E005)
+    if not re.match('^#[0-9A-Fa-f]{6}$', settings.MINIUSER_ADMIN_STATUS_COLOR_STAFF):
+        errors.append(E006)
+    if not re.match('^.{1}$', settings.MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER):
+        errors.append(E007)
+    if not re.match('^.{1}$', settings.MINIUSER_ADMIN_STATUS_CHAR_STAFF):
+        errors.append(E008)
 
     return errors
 
@@ -80,6 +129,9 @@ def check_configuration_constraints(app_configs, **kwargs):
 
 
 def check_configuration_recommendations(app_configs, **kwargs):
+    """Checks, if the recommended settings are met
+
+    This should only display warnings."""
 
     errors = []
 
@@ -119,6 +171,22 @@ class MiniUserConfig(AppConfig):
         set_app_default_setting('MINIUSER_REQUIRE_VALID_EMAIL', False)
         """Determines, if users must provide a valid email address. This also
         controls, if validation mails will be sent."""
+
+        set_app_default_setting('MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER', '#cc0000')
+        """Specifies the color of superusers in Django's admin list view.
+        This has to be a hexadecimal value, prefixed with a '#' (#rrggbb)"""
+
+        set_app_default_setting('MINIUSER_ADMIN_STATUS_COLOR_STAFF', '#00cc00')
+        """Specifies the color of users with staff status in Django's admin list
+        view. This has to be a hexadecimal value, prefixed with a '#' (#rrggbb)"""
+
+        set_app_default_setting('MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER', '#')
+        """Specifies the character that indicates a superuser.
+        Has to be a single character!"""
+
+        set_app_default_setting('MINIUSER_ADMIN_STATUS_CHAR_STAFF', '$')
+        """Specifies the character that indicates a user with staff-status.
+        Has to be a single character!"""
 
         set_app_default_setting('LOGIN_URL', 'miniuser:login')
         """Set the app's login as the default login view.
