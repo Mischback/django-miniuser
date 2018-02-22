@@ -4,6 +4,7 @@
 # Django imports
 from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.translation import ugettext_lazy as _
 
 # app imports
 from .models import MiniUser
@@ -13,7 +14,7 @@ class MiniUserAdminStaffStatusFilter(admin.SimpleListFilter):
     """Custom SimpleListFilter to filter on user's status"""
 
     # the title of this filter
-    title = 'status'
+    title = _('status')
 
     # the parameter in the URL
     parameter_name = 'status'
@@ -26,9 +27,9 @@ class MiniUserAdminStaffStatusFilter(admin.SimpleListFilter):
 
         # TODO: localize this
         return (
-            ('users', 'Users'),
-            ('staff', 'Staff'),
-            ('superusers', 'Superusers')
+            ('users', _('Users')),
+            ('staff', _('Staff')),
+            ('superusers', _('Superusers'))
         )
 
     def queryset(self, request, queryset):
@@ -84,14 +85,14 @@ class MiniUserAdmin(admin.ModelAdmin):
         """Returns the status of the user"""
 
         # TODO: Localize these!
-        status = 'user'
+        status = _('user')
         if obj.is_superuser:
-            status = 'superuser'
+            status = _('superuser')
         elif obj.is_staff:
-            status = 'staff'
+            status = _('staff')
 
         return status
-    status_aggregated.short_description = 'Status'
+    status_aggregated.short_description = _('Status')
 
     def username_color_status(self, obj):
         """Returns a colored username according to his status (HTML)"""
@@ -105,7 +106,7 @@ class MiniUserAdmin(admin.ModelAdmin):
             return obj.username
 
         return format_html('<span style="color: {};">{}</span>', color, obj.username)
-    username_color_status.short_description = 'Username (status)'
+    username_color_status.short_description = _('Username (status)')
     username_color_status.admin_order_field = '-username'
 
     def username_character_status(self, obj):
@@ -120,5 +121,5 @@ class MiniUserAdmin(admin.ModelAdmin):
             return obj.username
 
         return '[{}] {}'.format(status, obj.username)
-    username_character_status.short_description = 'Username (status)'
-    username_character_status.admin_order_field = 'username'
+    username_character_status.short_description = _('Username (status)')
+    username_character_status.admin_order_field = '-username'
