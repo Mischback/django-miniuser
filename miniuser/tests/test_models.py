@@ -2,11 +2,12 @@
 """miniuser's test base classes"""
 
 # Python imports
-from unittest import skip # noqa
+from unittest import skip  # noqa
 
 # Django imports
 from django.test import override_settings
 
+from ..exceptions import MiniUserConfigurationException
 # app imports
 from ..models import MiniUser
 from .utils.testcases import MiniuserTestCase
@@ -141,6 +142,19 @@ class MiniUserManagerTest(MiniuserTestCase):
         m = MiniUser.objects.create_user(username='foo', email='foo@bar.com')
         self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo'))
         self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo@bar.com'))
+
+    @override_settings(MINIUSER_LOGIN_NAME='foo')
+    def test_natural_key_invalid(self):
+        """Raises an exception, if MINIUSER_LOGIN_NAME has undefined value
+
+        This is an absolute safe-guard, because the parameters are checked with
+        Django's check-framework (see apps.py:check_correct_values() and
+        models.py.
+
+        To be completely honest: This was introduced to reach 100% coverage."""
+        m = MiniUser.objects.create_user(username='foo', email='foo@bar.com')
+        with self.assertRaisesMessage(MiniUserConfigurationException, "'MINIUSER_LOGIN_NAME' has an undefined value!"):
+            n = MiniUser.objects.get_by_natural_key('foo') # noqa
 
 
 class MiniUserModelTest(MiniuserTestCase):

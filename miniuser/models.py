@@ -15,6 +15,9 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
+# app imports
+from .exceptions import MiniUserConfigurationException
+
 
 class MiniUserManager(BaseUserManager):
     """Management class for MiniUser objects"""
@@ -90,6 +93,9 @@ class MiniUserManager(BaseUserManager):
             return self.get(username__iexact=input)
         elif settings.MINIUSER_LOGIN_NAME == 'email':
             return self.get(email__iexact=input)
+        else:
+            # if this exception is raised, apps.py:check_correct_values() failed or was not executed!
+            raise MiniUserConfigurationException(_("'MINIUSER_LOGIN_NAME' has an undefined value!"))
 
 
 @python_2_unicode_compatible
