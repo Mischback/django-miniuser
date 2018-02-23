@@ -26,12 +26,11 @@ class MiniUserAdminStaffStatusFilter(admin.SimpleListFilter):
         First value in the tuple: parameter in the query string
         Second value: The caption for the filter list"""
 
-        # TODO: localize this
         return (
             ('users', _('Users')),
             ('staff', _('Staff')),
             ('superusers', _('Superusers'))
-        )
+        )   # pragma nocover
 
     def queryset(self, request, queryset):
         """How to modify the queryset for this filter"""
@@ -44,6 +43,8 @@ class MiniUserAdminStaffStatusFilter(admin.SimpleListFilter):
 
         if self.value() == 'superusers':
             return queryset.filter(is_superuser=True)
+
+        return queryset
 
 
 @admin.register(MiniUser)
@@ -85,7 +86,6 @@ class MiniUserAdmin(admin.ModelAdmin):
     def status_aggregated(self, obj):
         """Returns the status of the user"""
 
-        # TODO: Localize these!
         status = _('user')
         if obj.is_superuser:
             status = _('superuser')
@@ -112,7 +112,6 @@ class MiniUserAdmin(admin.ModelAdmin):
     def username_character_status(self, obj):
         """Returns the prefixed username with status indicating characters"""
 
-        # TODO: Make this hardcoded values configurable in settings
         if obj.is_superuser:
             status = settings.MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER
         elif obj.is_staff:
