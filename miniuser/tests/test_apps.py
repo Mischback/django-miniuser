@@ -2,7 +2,7 @@
 """miniuser's test base classes"""
 
 # Python imports
-from unittest import skip # noqa
+from unittest import skip  # noqa
 
 # Django imports
 from django.conf import settings
@@ -10,8 +10,9 @@ from django.test import override_settings
 
 # app imports
 from ..apps import (
-    E001, E002, E003, E004, W001, check_correct_values, check_configuration_constraints,
-    check_configuration_recommendations, set_app_default_setting
+    E001, E002, E003, E004, W001, check_configuration_constraints,
+    check_configuration_recommendations, check_correct_values,
+    set_app_default_setting,
 )
 from .utils.testcases import MiniuserTestCase
 

@@ -6,7 +6,6 @@ This file contains minimum settings to perform tests."""
 # Python imports
 from os.path import abspath, dirname, join
 
-
 # path to the test.util directory
 TEST_ROOT = dirname(dirname(abspath(__file__)))
 

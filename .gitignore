@@ -9,7 +9,7 @@ __python__/*
 test.sqlite
 
 # do NOT track coverage files/folders
-.coverage
+.coverage*
 .coverage_html
 
 # do NOT track compiled language files

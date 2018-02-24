@@ -10,7 +10,7 @@ DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.settings_test
 DJANGO_TEST_POSTFIX := --settings=$(DJANGO_TEST_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 
-.PHONY: all benchmark clean coverage ensure_virtual_env flake8 flake \
+.PHONY: all benchmark clean coverage ensure_virtual_env flake8 flake isort/diff isort \
 		migrations test
 
 
@@ -21,6 +21,8 @@ all:
 	@echo "   clean      Removes all temporary files"
 	@echo "   coverage   Runs the tests and shows code coverage"
 	@echo "   flake8     Runs flake8 to check for PEP8 compliance (alias: flake)"
+	@echo "   isort      Runs isort to actually modify the imports"
+	@echo "   isort/diff Runs isort --diff to show proposed changes"
 	@echo "   migrations Creates the migrations for the app $(APP)"
 	@echo "   test       Runs the tests"
 	@echo ""
@@ -31,6 +33,7 @@ benchmark: ensure_virtual_env
 
 # performs the tests and measures code coverage
 coverage: ensure_virtual_env test
+	@$(PYTHON_BIN)/coverage combine
 	# $(PYTHON_BIN)/coverage html
 	@$(PYTHON_BIN)/coverage report
 
@@ -58,13 +61,22 @@ flake8: ensure_virtual_env
 
 flake: flake8
 
+# actually executes isort and changes the files!
+isort: ensure_virtual_env
+	@$(PYTHON_BIN)/isort --recursive .
+
+# only checking the imports and showing the diff
+isort/diff: ensure_virtual_env
+	@$(PYTHON_BIN)/isort --diff --recursive .
 
 # creates the necessary migrations
 #	this should be done after any model changes
 migrations: ensure_virtual_env
 	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
 
+test: ensure_virtual_env
+	@$(PYTHON_BIN)/tox -e py35-django20
 
 # runs the tests
-test: ensure_virtual_env
+test/tox: ensure_virtual_env
 	@$(PYTHON_BIN)/coverage run --parallel $(PYTHON_BIN)/django-admin.py test $(APP) $(DJANGO_TEST_POSTFIX)

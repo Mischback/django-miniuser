@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """miniuser's models"""
 
-# Python imports
 from __future__ import unicode_literals
 
 # Django imports

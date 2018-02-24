@@ -1,5 +1,6 @@
 # import the dev specific settings
-from .settings_dev import * # noqa
+# app imports
+from .settings_dev import *  # noqa
 
 
 # disable migrations during tests
