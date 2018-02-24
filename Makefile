@@ -10,7 +10,7 @@ DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.settings_test
 DJANGO_TEST_POSTFIX := --settings=$(DJANGO_TEST_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 
-.PHONY: all clean coverage ensure_virtual_env flake8 flake \
+.PHONY: all benchmark clean coverage ensure_virtual_env flake8 flake \
 		migrations test
 
 
@@ -24,6 +24,9 @@ all:
 	@echo "   migrations Creates the migrations for the app $(APP)"
 	@echo "   test       Runs the tests"
 	@echo ""
+
+benchmark: ensure_virtual_env
+	@$(PYTHON_BIN)/flake8 --benchmark .
 
 
 # performs the tests and measures code coverage
