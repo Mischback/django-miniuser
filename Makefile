@@ -4,10 +4,8 @@ LOCALPATH := ./
 PYTHONPATH := $(LOCALPATH)/
 PYTHON_BIN := $(VIRTUAL_ENV)/bin
 
-DJANGO_DEV_SETTINGS := miniuser.tests.utils.project.settings_dev
+DJANGO_DEV_SETTINGS := tests.utils.settings_dev
 DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
-DJANGO_TEST_SETTINGS := miniuser.tests.utils.project.settings_test
-DJANGO_TEST_POSTFIX := --settings=$(DJANGO_TEST_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 
 .PHONY: all benchmark clean coverage ensure_virtual_env flake8 flake isort/diff isort \
@@ -30,13 +28,11 @@ all:
 benchmark: ensure_virtual_env
 	@$(PYTHON_BIN)/flake8 --benchmark .
 
-
 # performs the tests and measures code coverage
 coverage: ensure_virtual_env test
 	@$(PYTHON_BIN)/coverage combine
 	# $(PYTHON_BIN)/coverage html
 	@$(PYTHON_BIN)/coverage report
-
 
 # deletes all temporary files created by Django
 clean:
@@ -45,7 +41,6 @@ clean:
 	@find . -iname "test.sqlite" -delete
 	@rm -rf .coverage .coverage_html
 
-
 # most of the commands can only be used inside of the virtual environment
 ensure_virtual_env:
 	@if [ -z $$VIRTUAL_ENV ]; then \
@@ -53,7 +48,6 @@ ensure_virtual_env:
 		echo "Please enable the virtualenv first!"; \
 		exit 1; \
 	fi
-
 
 # runs flake8 to check for PEP8 compliance
 flake8: ensure_virtual_env
@@ -76,7 +70,3 @@ migrations: ensure_virtual_env
 
 test: ensure_virtual_env
 	@$(PYTHON_BIN)/tox -e py35-django20
-
-# runs the tests
-test/tox: ensure_virtual_env
-	@$(PYTHON_BIN)/coverage run --parallel $(PYTHON_BIN)/django-admin.py test $(APP) $(DJANGO_TEST_POSTFIX)

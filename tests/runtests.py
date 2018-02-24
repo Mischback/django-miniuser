@@ -3,6 +3,7 @@
 # Python imports
 import argparse
 import os
+import sys
 
 # Django imports
 from django import setup as django_setup
