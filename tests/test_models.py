@@ -8,8 +8,10 @@ from unittest import skip  # noqa
 from django.test import override_settings
 
 # app imports
-from ..exceptions import MiniUserConfigurationException
-from ..models import MiniUser
+from miniuser.exceptions import MiniUserConfigurationException
+from miniuser.models import MiniUser
+
+# app imports
 from .utils.testcases import MiniuserTestCase
 
 

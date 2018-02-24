@@ -1,5 +1,4 @@
 # import the dev specific settings
-# app imports
 from .settings_dev import *  # noqa
 
 
