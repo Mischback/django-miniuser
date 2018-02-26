@@ -4,6 +4,8 @@ LOCALPATH := ./
 PYTHONPATH := $(LOCALPATH)/
 PYTHON_BIN := $(VIRTUAL_ENV)/bin
 
+TOX_TEST_ENV := py35-django20
+
 DJANGO_DEV_SETTINGS := tests.utils.settings_dev
 DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
 
@@ -39,7 +41,9 @@ clean:
 	@find . -iname "*.pyc" -delete
 	@find . -iname "__pycache__" -delete
 	@find . -iname "test.sqlite" -delete
-	@rm -rf .coverage .coverage_html
+	@find . -iname ".coverage.*" -delete
+	@$(PYTHON_BIN)/coverage erase
+	# @rm -rf .coverage .coverage_html
 
 # most of the commands can only be used inside of the virtual environment
 ensure_virtual_env:
@@ -51,13 +55,13 @@ ensure_virtual_env:
 
 # runs flake8 to check for PEP8 compliance
 flake8: ensure_virtual_env
-	@$(PYTHON_BIN)/flake8 .
+	@$(PYTHON_BIN)/tox -e flake8
 
 flake: flake8
 
 # actually executes isort and changes the files!
 isort: ensure_virtual_env
-	@$(PYTHON_BIN)/isort --recursive .
+	@$(PYTHON_BIN)/tox -e isort
 
 # only checking the imports and showing the diff
 isort/diff: ensure_virtual_env
@@ -68,5 +72,6 @@ isort/diff: ensure_virtual_env
 migrations: ensure_virtual_env
 	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
 
+# runs the tests in one single tox environment
 test: ensure_virtual_env
-	@$(PYTHON_BIN)/tox -e py35-django20
+	@$(PYTHON_BIN)/tox -e $(TOX_TEST_ENV)

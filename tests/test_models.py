@@ -154,7 +154,6 @@ class MiniUserManagerTest(MiniuserTestCase):
         models.py.
 
         To be completely honest: This was introduced to reach 100% coverage."""
-        m = MiniUser.objects.create_user(username='foo', email='foo@bar.com')
         with self.assertRaisesMessage(MiniUserConfigurationException, "'MINIUSER_LOGIN_NAME' has an undefined value!"):
             n = MiniUser.objects.get_by_natural_key('foo') # noqa
 

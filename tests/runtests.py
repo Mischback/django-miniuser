@@ -7,9 +7,9 @@ import sys
 
 # Django imports
 from django import setup as django_setup
-from django.conf import settings
+from django.conf import settings  # noqa
 from django.test.runner import DiscoverRunner
-from django.test.utils import get_runner
+from django.test.utils import get_runner  # noqa
 
 
 class AppTestRunner(DiscoverRunner):
