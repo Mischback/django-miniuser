@@ -6,6 +6,7 @@ from unittest import skip # noqa
 
 # Django imports
 from django.test import override_settings
+from django.test.client import Client
 from django.contrib.admin.sites import AdminSite
 
 # app imports
@@ -126,3 +127,22 @@ class MiniUserAdminTest(MiniuserTestCase):
         u.is_superuser = True
         self.assertEqual(
             ma.username_character_status(u), '[{}] {}'.format('b', u.username))
+
+    @skip('NOT WORKING')
+    def test_action_activate(self):
+        """Activation of multiple users"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+        u = MiniUser.objects.create(username='user')
+        v = MiniUser.objects.create(username='foo')
+        w = MiniUser.objects.create(username='bar')
+        # TODO: Message framework needs a Request object. Make this work!
+        c = Client()
+        request = c.get('/login/')
+
+        qs = MiniUser.objects.all().filter(is_active=False)
+        ma.action_activate_user(request, qs)
+
+        self.assertEqual(u.is_active, True)
+        self.assertEqual(v.is_active, True)
+        self.assertEqual(w.is_active, True)

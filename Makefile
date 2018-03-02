@@ -28,6 +28,7 @@ all:
 
 # performs the tests and measures code coverage
 coverage: ensure_virtual_env test
+	@$(PYTHON_BIN)/coverage combine
 	# $(PYTHON_BIN)/coverage html
 	@$(PYTHON_BIN)/coverage report
 

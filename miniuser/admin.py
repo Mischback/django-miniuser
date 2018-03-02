@@ -52,6 +52,8 @@ class MiniUserAdmin(admin.ModelAdmin):
     """Represents MiniUser in Django's admin interface"""
 
     # controls, which fields are displayed in the list overview
+    # TODO: Before merging, include sane default value here!
+    # TODO: Make this configurable with app settings
     list_display = (
         'username_color_status',
         'username_character_status',
@@ -82,6 +84,9 @@ class MiniUserAdmin(admin.ModelAdmin):
 
     # enables a searchbox and specifies, which fields are used for the search
     search_fields = ('username', 'email')
+
+    # admin actions
+    actions = ['action_activate_user', 'action_deactivate_user']
 
     def status_aggregated(self, obj):
         """Returns the status of the user"""
@@ -122,3 +127,27 @@ class MiniUserAdmin(admin.ModelAdmin):
         return '[{}] {}'.format(status, obj.username)
     username_character_status.short_description = _('Username (status)')
     username_character_status.admin_order_field = '-username'
+
+    def action_activate_user(self, request, queryset):
+        """Performs bulk activation of users in Django admin"""
+
+        updated = queryset.update(is_active=True)
+
+        if updated == 1:
+            msg = _('1 user was activated successfully.')
+        else:
+            msg = _('{} users were activated successfully.'.format(updated))
+        self.message_user(request, msg)
+    action_activate_user.short_description = _('Activate selected users')
+
+    def action_deactivate_user(self, request, queryset):
+        """Performs bulk deactivation of users in Django admin"""
+
+        updated = queryset.update(is_active=False)
+
+        if updated == 1:
+            msg = _('1 user was deactivated successfully.')
+        else:
+            msg = _('{} users were deactivated successfully.'.format(updated))
+        self.message_user(request, msg)
+    action_deactivate_user.short_description = _('Deactivate selected users')
