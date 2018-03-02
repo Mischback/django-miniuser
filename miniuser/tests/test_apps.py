@@ -10,7 +10,7 @@ from django.test import override_settings
 
 # app imports
 from ..apps import (
-    E001, E002, E003, E004, E005, E006, E007, E008, E009, W001,
+    E001, E002, E003, E004, E005, E006, E007, E008, E009, E010, W001,
     check_correct_values, check_configuration_constraints, check_configuration_recommendations,
     set_app_default_setting
 )
@@ -104,6 +104,11 @@ class MiniUserConfigTest(MiniuserTestCase):
     def test_check_e009(self):
         errors = check_correct_values(None)
         self.assertEqual(errors, [E009])
+
+    @override_settings(MINIUSER_ADMIN_SHOW_SEARCHBOX='foo')
+    def test_check_e010(self):
+        errors = check_correct_values(None)
+        self.assertEqual(errors, [E010])
 
     @override_settings(LOGIN_URL='/')
     def test_check_w001(self):

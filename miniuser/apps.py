@@ -97,6 +97,14 @@ E009 = Error(
     id='miniuser.e009',
 )
 
+E010 = Error(
+    _("MINIUSER_ADMIN_SHOW_SEARCHBOX has to be True or False."),
+    hint=_(
+        "Please check your settings and ensure, that you put a boolean value "
+        "to this setting."),
+    id='miniuser.e010',
+)
+
 W001 = Warning(
     _("LOGIN_URL is *not* 'miniuser:login'."),
     hint=_(
@@ -147,6 +155,11 @@ def check_correct_values(app_configs, **kwargs):
         ):
             errors.append(E009)
             break
+
+    # Please note, this setting is not injected in ready()-method. See admin.py
+    # MiniUserAdmin class instead.
+    if not isinstance(settings.MINIUSER_ADMIN_SHOW_SEARCHBOX, bool):
+        errors.append(E010)
 
     return errors
 

@@ -86,8 +86,19 @@ class MiniUserAdmin(admin.ModelAdmin):
     ordering = ('-is_superuser', '-is_staff', 'is_active', 'username')
 
     # enables a searchbox and specifies, which fields are used for the search
-    # TODO: Make this configurable in app's settings
-    search_fields = ('username', 'email')
+    # Our usual way of providing the app's default values in apps.py does not
+    #   work here, because we can't ensure, that our settings are injected,
+    #   before Django's admin calls its autodiscover()-method.
+    #   However, if the option is included in the project's settings, they will
+    #   be set into effect here.
+    #   Please note that there is a checking of the projects settings performed
+    #   using Django's checks-framework (see apps.py).
+    try:
+        if settings.MINIUSER_ADMIN_SHOW_SEARCHBOX:
+            search_fields = ('username', 'email', 'first_name', 'last_name')
+            setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', True)
+    except AttributeError:
+        setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', False)
 
     # admin actions
     actions = ['action_activate_user', 'action_deactivate_user']
