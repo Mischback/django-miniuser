@@ -70,7 +70,7 @@ E007 = Error(
     _("Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER is not valid."),
     hint=_(
         "Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be a single "
-        "chraracter. Please check your settings!"
+        "character. Please check your settings!"
     ),
     id='miniuser.e007',
 )
@@ -79,9 +79,22 @@ E008 = Error(
     _("Value of MINIUSER_ADMIN_STATUS_CHAR_STAFF is not valid."),
     hint=_(
         "Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be a single "
-        "chraracter. Please check your settings!"
+        "character. Please check your settings!"
     ),
     id='miniuser.e008',
+)
+
+E009 = Error(
+    _("Value of MINIUSER_ADMIN_LIST_DISPLAY is not valid."),
+    hint=_(
+        "Value of MINIUSER_ADMIN_LIST_DISPLAY must be a tuple or a list. It "
+        "can only contain the following values: 'username_color_status', "
+        "'username_character_status', 'username', 'email', 'first_name', "
+        "'last_name', 'status_aggregated', 'is_active', 'is_staff', "
+        "'is_superuser', 'email_is_verified', 'last_login' and "
+        "'registration_date'."
+    ),
+    id='miniuser.e009',
 )
 
 W001 = Warning(
@@ -113,6 +126,27 @@ def check_correct_values(app_configs, **kwargs):
         errors.append(E007)
     if not re.match('^.{1}$', settings.MINIUSER_ADMIN_STATUS_CHAR_STAFF):
         errors.append(E008)
+
+    # Please note, this setting is not injected in ready()-method. See admin.py
+    # MiniUserAdmin class instead.
+    for i in settings.MINIUSER_ADMIN_LIST_DISPLAY:
+        if i not in (
+            'username_color_status',
+            'username_character_status',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'status_aggregated',
+            'is_active',
+            'is_staff',
+            'is_superuser',
+            'email_is_verified',
+            'last_login',
+            'registration_date'
+        ):
+            errors.append(E009)
+            break
 
     return errors
 

@@ -52,23 +52,26 @@ class MiniUserAdmin(admin.ModelAdmin):
     """Represents MiniUser in Django's admin interface"""
 
     # controls, which fields are displayed in the list overview
-    # TODO: Before merging, include sane default value here!
-    # TODO: Make this configurable with app settings
-    list_display = (
-        'username_color_status',
-        'username_character_status',
-        'username',
-        'email',
-        'first_name',
-        'last_name',
-        'status_aggregated',
-        'is_active',
-        'is_staff',
-        'is_superuser',
-        'email_is_verified',
-        'last_login',
-        'registration_date',
-    )
+    # Our usual way of providing the app's default values in apps.py does not
+    #   work here, because we can't ensure, that our settings are injected,
+    #   before Django's admin calls its autodiscover()-method.
+    #   However, if the option is included in the project's settings, they will
+    #   be set into effect here.
+    #   Please note that there is a checking of the projects settings performed
+    #   using Django's checks-framework (see apps.py).
+    # TODO: Revisit the provided default values!
+    try:
+        list_display = settings.MINIUSER_ADMIN_LIST_DISPLAY
+    except AttributeError:
+        list_display = (
+            'username_color_status',
+            'email',
+            'email_is_verified',
+            'status_aggregated',
+            'last_login',
+        )
+        # if this statement is reached, inject this setting now at last!
+        setattr(settings, 'MINIUSER_ADMIN_LIST_DISPLAY', list_display)
 
     # controls, which fields are used to access the objects detail view
     # list_display_links
