@@ -33,7 +33,7 @@ benchmark: ensure_virtual_env
 # performs the tests and measures code coverage
 coverage: ensure_virtual_env test
 	@$(PYTHON_BIN)/coverage combine
-	# $(PYTHON_BIN)/coverage html
+	# @$(PYTHON_BIN)/coverage html
 	@$(PYTHON_BIN)/coverage report
 
 # deletes all temporary files created by Django
@@ -43,7 +43,7 @@ clean:
 	@find . -iname "test.sqlite" -delete
 	@find . -iname ".coverage.*" -delete
 	@$(PYTHON_BIN)/coverage erase
-	# @rm -rf .coverage .coverage_html
+	@rm -rf htmlcov
 
 # most of the commands can only be used inside of the virtual environment
 ensure_virtual_env:
