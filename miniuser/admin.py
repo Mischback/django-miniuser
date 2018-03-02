@@ -83,10 +83,21 @@ class MiniUserAdmin(admin.ModelAdmin):
     ordering = ('-is_superuser', '-is_staff', 'is_active', 'username')
 
     # enables a searchbox and specifies, which fields are used for the search
+    # TODO: Make this configurable in app's settings
     search_fields = ('username', 'email')
 
     # admin actions
     actions = ['action_activate_user', 'action_deactivate_user']
+
+    def get_actions(self, request):
+        """Override the default get_actions()-method to exclude delete objects"""
+
+        # get the original list of actions
+        actions = super().get_actions(request)
+
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
 
     def status_aggregated(self, obj):
         """Returns the status of the user"""
