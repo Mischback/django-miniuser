@@ -74,12 +74,6 @@ class MiniUserAdmin(admin.ModelAdmin):
         # if this statement is reached, inject this setting now at last!
         setattr(settings, 'MINIUSER_ADMIN_LIST_DISPLAY', list_display)
 
-    # controls, which fields are used to access the objects detail view
-    # list_display_links
-
-    # controls, which fields are editable in the list view
-    # list_editable = ('is_active',)
-
     # controls the applicable filters
     list_filter = ('is_active', MiniUserAdminStaffStatusFilter)
 
@@ -101,7 +95,7 @@ class MiniUserAdmin(admin.ModelAdmin):
     except AttributeError:
         setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', False)
 
-    # admin actions
+    # admin actions (these will be accessible for bulk editing in list view)
     actions = ['action_activate_user', 'action_deactivate_user']
 
     def get_actions(self, request):
@@ -177,3 +171,35 @@ class MiniUserAdmin(admin.ModelAdmin):
             msg = _('{} users were deactivated successfully.'.format(updated))
         self.message_user(request, msg)
     action_deactivate_user.short_description = _('Deactivate selected users')
+
+    def get_miniuser_legend(self):
+        """Returns relevant information from the app's settings to enhance the context"""
+
+        result = {}
+
+        if 'username_color_status' in settings.MINIUSER_ADMIN_LIST_DISPLAY:
+            colors = {
+                'superuser': settings.MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER,
+                'staff': settings.MINIUSER_ADMIN_STATUS_COLOR_STAFF
+            }
+            result['color'] = colors
+
+        if 'username_character_status' in settings.MINIUSER_ADMIN_LIST_DISPLAY:
+            characters = {
+                'superuser': settings.MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER,
+                'staff': settings.MINIUSER_ADMIN_STATUS_CHAR_STAFF
+            }
+            result['character'] = characters
+
+        return result
+
+    def changelist_view(self, request, extra_context=None):
+        """Override changelist_view()-method to pass some more context to the view
+
+        This is used to:
+            - provide the legend (at the foot of the list view)"""
+
+        extra_context = extra_context or {}
+        extra_context['miniuser_legend'] = self.get_miniuser_legend()
+
+        return super().changelist_view(request, extra_context=extra_context)

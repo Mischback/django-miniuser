@@ -1,0 +1,13 @@
+{% extends "admin/miniuser/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+{% block result_list %}
+    {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+    {% result_list cl %}
+    {% if action_form and actions_on_bottom and cl.show_admin_actions %}{% admin_actions %}{% endif %}
+    {% if miniuser_legend %}
+      <p class="paginator small" style="text-align: right;">
+        {% blocktrans %}Legend{% endblocktrans %}:
+        {% if miniuser_legend.color %}<span style="color: {{ miniuser_legend.color.superuser }}; font-weight: bold;">Superuser</span>, <span style="color: {{ miniuser_legend.color.staff }}; font-weight: bold;">Staff</span>{% endif %}{% if miniuser_legend.color and miniuser_legend.character %}, {% endif %}{% if miniuser_legend.character %}[{{ miniuser_legend.character.superuser }}] Superuser, [{{ miniuser_legend.character.staff }}]Staff{% endif %}
+      </p>
+    {% endif %}
+{% endblock %}
