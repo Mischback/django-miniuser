@@ -4,8 +4,6 @@ LOCALPATH := ./
 PYTHONPATH := $(LOCALPATH)/
 PYTHON_BIN := $(VIRTUAL_ENV)/bin
 
-TOX_TEST_ENV := py35-django20
-
 DJANGO_DEV_SETTINGS := tests.utils.settings_dev
 DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
 
@@ -14,6 +12,7 @@ DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPAT
 		migrations test
 
 
+# TODO: document all available commands
 all:
 	@echo ""
 	@echo " Hello $(LOGNAME)! Welcome to django-$(APP)"
@@ -28,13 +27,7 @@ all:
 	@echo ""
 
 benchmark: ensure_virtual_env
-	@$(PYTHON_BIN)/flake8 --benchmark .
-
-# performs the tests and measures code coverage
-coverage: ensure_virtual_env test
-	@$(PYTHON_BIN)/coverage combine
-	# @$(PYTHON_BIN)/coverage html
-	@$(PYTHON_BIN)/coverage report
+	@tox -e flake8 -- --benchmark
 
 # deletes all temporary files created by Django
 clean:
@@ -42,8 +35,12 @@ clean:
 	@find . -iname "__pycache__" -delete
 	@find . -iname "test.sqlite" -delete
 	@find . -iname ".coverage.*" -delete
-	@$(PYTHON_BIN)/coverage erase
+	@tox -e util -- coverage erase
 	@rm -rf htmlcov
+
+# performs the tests and measures code coverage
+coverage: ensure_virtual_env test
+	@tox -e coverage-report
 
 # most of the commands can only be used inside of the virtual environment
 ensure_virtual_env:
@@ -55,23 +52,26 @@ ensure_virtual_env:
 
 # runs flake8 to check for PEP8 compliance
 flake8: ensure_virtual_env
-	@$(PYTHON_BIN)/tox -e flake8
+	@tox -e flake8
 
 flake: flake8
 
 # actually executes isort and changes the files!
 isort: ensure_virtual_env
-	@$(PYTHON_BIN)/tox -e isort
+	@tox -e isort
 
 # only checking the imports and showing the diff
 isort/diff: ensure_virtual_env
-	@$(PYTHON_BIN)/isort --diff --recursive .
+	@tox -e isort -- --diff
 
 # creates the necessary migrations
 #	this should be done after any model changes
+# TODO: make this run in tox's util environment!
 migrations: ensure_virtual_env
-	@$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
+	# @$(PYTHON_BIN)/django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
+	# @tox -e util -- django-admin.py makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
+	@echo "This is currently in development
 
 # runs the tests in one single tox environment
 test: ensure_virtual_env
-	@$(PYTHON_BIN)/tox -e $(TOX_TEST_ENV)
+	@tox -e util
