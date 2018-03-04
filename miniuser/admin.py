@@ -67,6 +67,7 @@ class MiniUserAdmin(admin.ModelAdmin):
             'username_color_status',
             'email',
             'email_is_verified',
+            'is_active',
             'status_aggregated',
             'last_login',
         )
