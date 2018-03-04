@@ -4,6 +4,7 @@
 # Django imports
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
@@ -65,10 +66,8 @@ class MiniUserAdmin(admin.ModelAdmin):
     except AttributeError:
         list_display = (
             'username_color_status',
-            'email',
-            'email_is_verified',
+            'email_with_status',
             'is_active',
-            'status_aggregated',
             'last_login',
         )
         # if this statement is reached, inject this setting now at last!
@@ -147,6 +146,16 @@ class MiniUserAdmin(admin.ModelAdmin):
         return '[{}] {}'.format(status, obj.username)
     username_character_status.short_description = _('Username (status)')
     username_character_status.admin_order_field = '-username'
+
+    def email_with_status(self, obj):
+        """Combines email-address and verification status in one field"""
+
+        # get the icon (with Django's template tag)
+        icon = _boolean_icon(obj.email_is_verified)
+
+        return format_html('{} {}', icon, obj.email)
+    email_with_status.short_description = _('EMail')
+    email_with_status.admin_order_field = '-email'
 
     def action_activate_user(self, request, queryset):
         """Performs bulk activation of users in Django admin"""
