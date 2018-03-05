@@ -106,7 +106,7 @@ class MiniUserAdmin(admin.ModelAdmin):
         # TODO: Should deletion of users be really that hard?
 
         # get the original list of actions
-        actions = super().get_actions(request)
+        actions = super(MiniUserAdmin, self).get_actions(request)
 
         if 'delete_selected' in actions:
             del actions['delete_selected']
@@ -216,4 +216,4 @@ class MiniUserAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['miniuser_legend'] = self.get_miniuser_legend()
 
-        return super().changelist_view(request, extra_context=extra_context)
+        return super(MiniUserAdmin, self).changelist_view(request, extra_context=extra_context)
