@@ -66,3 +66,8 @@ migrations: ensure_virtual_env
 # runs the tests
 test: ensure_virtual_env
 	@$(PYTHON_BIN)/coverage run --parallel $(PYTHON_BIN)/django-admin.py test $(APP) $(DJANGO_TEST_POSTFIX)
+
+test/spec: ensure_virtual_env clean
+	@$(PYTHON_BIN)/coverage run --parallel $(PYTHON_BIN)/django-admin.py test --pattern="test_admin.py" $(DJANGO_TEST_POSTFIX)
+	@$(PYTHON_BIN)/coverage combine
+	@$(PYTHON_BIN)/coverage report --include "*/admin.py"

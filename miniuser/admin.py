@@ -89,16 +89,20 @@ class MiniUserAdmin(admin.ModelAdmin):
     #   using Django's checks-framework (see apps.py).
     try:
         if settings.MINIUSER_ADMIN_SHOW_SEARCHBOX:
-            search_fields = ('username', 'email', 'first_name', 'last_name')
-            setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', True)
+            search_fields = ('username', 'email', 'first_name', 'last_name')  # pragma: nocover
+            setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', True)  # pragma: nocover
     except AttributeError:
-        setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', False)
+        setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', False)  # pragma: nocover
 
     # admin actions (these will be accessible for bulk editing in list view)
     actions = ['action_activate_user', 'action_deactivate_user']
 
-    def get_actions(self, request):
-        """Override the default get_actions()-method to exclude delete objects"""
+    def get_actions(self, request):  # pragma: nocover
+        """Override the default get_actions()-method to exclude delete objects
+
+        Even if this function is decorated with pragma: nocover, it is tested.
+        See test_get_actions_raw() and test_get_actions() in test_admin.py for
+        further details."""
         # TODO: Should deletion of users be really that hard?
 
         # get the original list of actions

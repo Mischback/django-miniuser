@@ -6,10 +6,12 @@ from unittest import skip # noqa
 
 # Django imports
 from django.test import override_settings
+from django.contrib.admin import ModelAdmin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
 from django.urls import reverse
+from django.test.client import RequestFactory
 
 # app imports
 from .utils.testcases import MiniuserTestCase
@@ -129,23 +131,64 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
         self.assertEqual(ma.username_character_status(u), '[{}] {}'.format('b', u.username))
 
     def test_email_with_status(self):
-        """asdf"""
+        """Combines email address with email verification status"""
 
         ma = MiniUserAdmin(MiniUser, self.site)
         u = MiniUser.objects.create(username='user', email='user@localhost')
 
         self.assertEqual(ma.email_with_status(u), '{} {}'.format(_boolean_icon(u.email_is_verified), u.email))
 
-    @skip('NOT WORKING')
-    def test_get_actions(self):
-        """Delete User objects should not be available"""
+    @override_settings(
+        MINIUSER_ADMIN_LIST_DISPLAY=['username_color_status'],
+        MINIUSER_ADMIN_STATUS_COLOR_STAFF='#f0f0f0',
+        MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER='#0f0f0f'
+    )
+    def test_get_legend_color(self):
+        """Returns the legend for colored usernames"""
 
         ma = MiniUserAdmin(MiniUser, self.site)
+        self.assertEqual(ma.get_miniuser_legend(), {'color': {'superuser': '#0f0f0f', 'staff': '#f0f0f0'}})
 
-        # TODO: get_actions() needs a Request object. Make this work!
-        actions = ma.get_actions(None)
-        with self.assertRaises(AttributeError):
-            foo = actions['delete_selected']
+    @override_settings(
+        MINIUSER_ADMIN_LIST_DISPLAY=['username_character_status'],
+        MINIUSER_ADMIN_STATUS_CHAR_STAFF='a',
+        MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER='b'
+    )
+    def test_get_legend_character(self):
+        """Returns the legend for character status decorated usernames"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+        self.assertEqual(ma.get_miniuser_legend(), {'character': {'superuser': 'b', 'staff': 'a'}})
+
+    @override_settings(
+        MINIUSER_ADMIN_LIST_DISPLAY=['username_color_status', 'username_character_status'],
+        MINIUSER_ADMIN_STATUS_COLOR_STAFF='#f0f0f0',
+        MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER='#0f0f0f',
+        MINIUSER_ADMIN_STATUS_CHAR_STAFF='a',
+        MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER='b'
+    )
+    def test_get_legend_both(self):
+        """Returns both legends"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+        result = ma.get_miniuser_legend()
+        self.assertEqual(result['character'], {'superuser': 'b', 'staff': 'a'})
+        self.assertEqual(result['color'], {'superuser': '#0f0f0f', 'staff': '#f0f0f0'})
+
+    def test_get_actions_raw(self):
+        """Directly tests the get_actions()-method"""
+
+        factory = RequestFactory()
+        request = factory.get(reverse('admin:miniuser_miniuser_changelist'))
+        ma = MiniUserAdmin(MiniUser, self.site)
+        modeladmin = ModelAdmin(MiniUser, self.site)
+
+        actions = modeladmin.get_actions(request)
+        self.assertIn('delete_selected', actions)
+
+        actions = ma.get_actions(request)
+
+        self.assertNotIn('delete_selected', actions)
 
 
 class MiniUserAdminActionsTest(MiniuserTestCase):
@@ -160,6 +203,15 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
 
     def setUp(self):
         self.client.force_login(self.superuser)
+
+    def test_get_actions(self):
+        """Delete User objects should not be available
+
+        So, this test is working, but it does not really cover the source of
+        get_actions()."""
+
+        response = self.client.get(reverse('admin:miniuser_miniuser_changelist'))
+        self.assertNotContains(response, 'delete_selected')
 
     def test_action_activate(self):
         """Activation of multiple users"""
