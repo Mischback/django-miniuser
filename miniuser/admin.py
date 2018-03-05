@@ -99,6 +99,7 @@ class MiniUserAdmin(admin.ModelAdmin):
 
     def get_actions(self, request):
         """Override the default get_actions()-method to exclude delete objects"""
+        # TODO: Should deletion of users be really that hard?
 
         # get the original list of actions
         actions = super().get_actions(request)

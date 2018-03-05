@@ -6,8 +6,10 @@ from unittest import skip # noqa
 
 # Django imports
 from django.test import override_settings
-from django.test.client import Client
 from django.contrib.admin.sites import AdminSite
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
+from django.contrib.admin.templatetags.admin_list import _boolean_icon
+from django.urls import reverse
 
 # app imports
 from .utils.testcases import MiniuserTestCase
@@ -62,7 +64,7 @@ class MiniUserAdminStaffStatusFilterTest(MiniuserTestCase):
             self.assertEqual(f_result[3], True)
 
 
-class MiniUserAdminTest(MiniuserTestCase):
+class MiniUserAdminChangeListTest(MiniuserTestCase):
     """Tests the custom ModelAdmin"""
 
     def setUp(self):
@@ -121,28 +123,134 @@ class MiniUserAdminTest(MiniuserTestCase):
         self.assertEqual(ma.username_character_status(u), u.username)
 
         u.is_staff = True
-        self.assertEqual(
-            ma.username_character_status(u), '[{}] {}'.format('a', u.username))
+        self.assertEqual(ma.username_character_status(u), '[{}] {}'.format('a', u.username))
 
         u.is_superuser = True
-        self.assertEqual(
-            ma.username_character_status(u), '[{}] {}'.format('b', u.username))
+        self.assertEqual(ma.username_character_status(u), '[{}] {}'.format('b', u.username))
+
+    def test_email_with_status(self):
+        """asdf"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+        u = MiniUser.objects.create(username='user', email='user@localhost')
+
+        self.assertEqual(ma.email_with_status(u), '{} {}'.format(_boolean_icon(u.email_is_verified), u.email))
 
     @skip('NOT WORKING')
+    def test_get_actions(self):
+        """Delete User objects should not be available"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+
+        # TODO: get_actions() needs a Request object. Make this work!
+        actions = ma.get_actions(None)
+        with self.assertRaises(AttributeError):
+            foo = actions['delete_selected']
+
+
+class MiniUserAdminActionsTest(MiniuserTestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = MiniUser.objects.create_superuser(
+            username='django',
+            password='django',
+            email='django@localhost'
+        )
+
+    def setUp(self):
+        self.client.force_login(self.superuser)
+
     def test_action_activate(self):
         """Activation of multiple users"""
 
-        ma = MiniUserAdmin(MiniUser, self.site)
         u = MiniUser.objects.create(username='user')
         v = MiniUser.objects.create(username='foo')
         w = MiniUser.objects.create(username='bar')
-        # TODO: Message framework needs a Request object. Make this work!
-        c = Client()
-        request = c.get('/login/')
 
-        qs = MiniUser.objects.all().filter(is_active=False)
-        ma.action_activate_user(request, qs)
+        # try to activate a single user
+        action_data = {
+            ACTION_CHECKBOX_NAME: [u.pk],
+            'action': 'action_activate_user',
+        }
 
-        self.assertEqual(u.is_active, True)
-        self.assertEqual(v.is_active, True)
-        self.assertEqual(w.is_active, True)
+        # all users are inactive
+        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, False)
+        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, False)
+        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, False)
+
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # user 'user' is active
+        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, True)
+        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, False)
+        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, False)
+
+        # message indicates the activation of 1 user
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), '1 user was activated successfully.')
+
+        # try to activate two more users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [v.pk, w.pk],
+            'action': 'action_activate_user',
+        }
+
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # they got activated
+        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, True)
+        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, True)
+
+        # another message indicates the activation of two more users
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(len(messages), 2)
+        self.assertEqual(str(messages[1]), '2 users were activated successfully.')
+
+    def test_action_deactivate(self):
+        """Deactivation of multiple users"""
+
+        u = MiniUser.objects.create(username='user', is_active=True)
+        v = MiniUser.objects.create(username='foo', is_active=True)
+        w = MiniUser.objects.create(username='bar', is_active=True)
+
+        # try to activate a single user
+        action_data = {
+            ACTION_CHECKBOX_NAME: [u.pk],
+            'action': 'action_deactivate_user',
+        }
+
+        # all users are inactive
+        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, True)
+        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, True)
+        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, True)
+
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # user 'user' is active
+        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, False)
+        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, True)
+        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, True)
+
+        # message indicates the activation of 1 user
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(str(messages[0]), '1 user was deactivated successfully.')
+
+        # try to activate two more users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [v.pk, w.pk],
+            'action': 'action_deactivate_user',
+        }
+
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # they got activated
+        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, False)
+        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, False)
+
+        # another message indicates the activation of two more users
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(len(messages), 2)
+        self.assertEqual(str(messages[1]), '2 users were deactivated successfully.')
