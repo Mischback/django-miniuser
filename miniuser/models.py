@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 
 # Django imports
 from django.conf import settings
-from django.contrib.admin import ModelAdmin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -199,7 +198,14 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.get_username()
 
+    def get_full_name(self):
+        """Prior to Django 2.0 this method was required.
 
-class MiniUserAdmin(ModelAdmin):
-    """Represents MiniUser in Django's admin interface"""
-    pass
+        It should not be used in the app's admin pages."""
+        return self.get_username()
+
+    def get_short_name(self):
+        """Prior to Django 2.0 this method was required.
+
+        It should not be used in the app's admin pages."""
+        return self.get_username()
