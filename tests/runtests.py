@@ -1,48 +1,67 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Python imports
 import argparse
 import os
 import sys
 
-# Django imports
-from django import setup as django_setup
-from django.conf import settings  # noqa
-from django.test.runner import DiscoverRunner
-from django.test.utils import get_runner  # noqa
+import django
+from django.conf import settings
+from django.test.utils import get_runner
 
 
-class AppTestRunner(DiscoverRunner):
-    """This subclass of Django's DiscoverRunner looks for tests in this directory
+def setup(enable_migrations, verbosity):
+    """Prepares the test environment.
 
-    Django's DiscoverRunner tries to find tests in the apps directory, specified
-    by the name of the app. But the tests are seperated from the actual app
-    code, so to build the suite, it has to discover tests here."""
+    Basically, this function is used to inject test-specific settings. It should
+    be ensured, that these settings are only relevant to testing. A minimal
+    configuration to actually run the app has to be specified using Django's
+    setting-mechanism."""
 
-    def build_suite(self, test_labels=None, extra_fields=None, **kwargs):
-        """Override the build suite method to discover tests"""
+    class DisableMigrations(object):
+        """A generic class to disable all migrations during tests.
 
-        # TODO: Django's implementation does a lot of things. Are they necessary for this?
+        See setup()-function on how this is applied."""
 
-        # looking for tests in this directory
-        suite = self.test_loader.discover('.')
-        return suite
+        def __contains__(self, item):
+            return True
+
+        def __getitem__(self, item):
+            # return 'thesearenotthemigrationsyouarelookingfor'
+            return None
+
+    # disable migrations during tests
+    if not enable_migrations:
+        # see https://simpleisbetterthancomplex.com/tips/2016/08/19/django-tip-12-disabling-migrations-to-speed-up-unit-tests.html  # noqa
+        settings.MIGRATION_MODULES = DisableMigrations()
+        if verbosity >= 2:
+            print('Testing without applied migrations.')
+    else:
+        if verbosity >= 2:
+            print('Testing with applied migrations.')
+
+    # actually build the Django configuration
+    django.setup()
 
 
-def run_tests():
+def app_tests(enable_migrations, tags, verbosity):
+    """Gets the TestRunner and runs the tests"""
 
-    # this is necessary to actually connect with Django
-    django_setup()
+    # prepare the actual test environment
+    setup(enable_migrations, verbosity)
 
-    # get the TestRunner (defaults to Django's implementation)
-    # TODO: Make it possible to use another test runner
-    # if not hasattr(settings, 'TEST_RUNNER'):
-    #     settings.TEST_RUNNER = 'MyTestRunner'
-    # TestRunner = get_runner(settings)
-    test_runner = AppTestRunner()
+    # reuse Django's DiscoverRunner
+    if not hasattr(settings, 'TEST_RUNNER'):
+        settings.TEST_RUNNER = 'django.test.runner.DiscoverRunner'
+    TestRunner = get_runner(settings)
 
-    # running the suite
-    failures = test_runner.run_tests('miniuser')
+    test_runner = TestRunner(
+        verbosity=verbosity,
+        tags=tags,
+    )
+
+    failures = test_runner.run_tests(['.'])
 
     return failures
 
@@ -51,9 +70,21 @@ if __name__ == '__main__':
     # set up the argument parser
     parser = argparse.ArgumentParser(description='Run the MiniUser test suite')
     parser.add_argument(
+        '--enable-migrations', action='store_true', dest='enable_migrations',
+        help="Enables the usage of migrations during tests."
+    )
+    parser.add_argument(
         '--settings',
         help="Python path to settings module, e.g. 'myproject.settings'. If "
-             "this is not provided, 'tests.utils.settings_test' will be used."
+             "this is not provided, 'tests.utils.settings_dev' will be used."
+    )
+    parser.add_argument(
+        '-t', '--tag', dest='tags', action='append',
+        help="Run only tests with the specified tags. Can be used multiple times."
+    )
+    parser.add_argument(
+        '-v', '--verbosity', default=1, type=int, choices=[0, 1, 2, 3],
+        help="Verbosity level; 0=minimal, 3=maximal; default=1"
     )
 
     # actually get the options
@@ -63,10 +94,14 @@ if __name__ == '__main__':
     if options.settings:
         os.environ['DJANGO_SETTINGS_MODULE'] = options.settings
     else:
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'utils.settings_test')
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'utils.settings_dev')
         options.settings = os.environ['DJANGO_SETTINGS_MODULE']
 
-    failures = run_tests()
+    failures = app_tests(
+        options.enable_migrations,
+        options.tags,
+        options.verbosity,
+    )
 
     if failures:
         sys.exit(1)
