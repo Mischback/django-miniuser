@@ -15,6 +15,12 @@ PROJECT_ROOT = dirname(TEST_ROOT)
 # add PROJECT_ROOT to Python path
 sys.path.append(normpath(PROJECT_ROOT))
 
+# enable debugging (will be set to False by running tests)
+DEBUG = True
+
+# allow all hosts (will be set to [] by running tests)
+ALLOWED_HOSTS = ['*']
+
 # database configuration
 DATABASES = {
     'default': {

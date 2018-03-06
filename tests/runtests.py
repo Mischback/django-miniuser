@@ -6,6 +6,7 @@ import argparse
 import os
 import sys
 
+# Django imports
 import django
 from django.conf import settings
 from django.test.utils import get_runner
@@ -30,6 +31,10 @@ def setup(enable_migrations, verbosity):
         def __getitem__(self, item):
             # return 'thesearenotthemigrationsyouarelookingfor'
             return None
+
+    # don't test with debugging enabled
+    settings.DEBUG = False
+    settings.ALLOWED_HOSTS = []
 
     # disable migrations during tests
     if not enable_migrations:
