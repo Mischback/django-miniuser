@@ -10,7 +10,6 @@ from django.conf import settings
 from django.core.checks import Error, Warning, register
 from django.utils.translation import ugettext_lazy as _
 
-
 E001 = Error(
     _("MINIUSER_DEFAULT_ACTIVE has to be True or False."),
     hint=_(

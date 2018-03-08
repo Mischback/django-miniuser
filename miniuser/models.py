@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """miniuser's models"""
 
-# Python imports
 from __future__ import unicode_literals
 
 # Django imports
@@ -202,7 +201,7 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
         """Prior to Django 2.0 this method was required.
 
         It should not be used in the app's admin pages."""
-        return self.get_username()
+        return self.get_username()  # pragma: nocover
 
     def get_short_name(self):
         """Prior to Django 2.0 this method was required.

@@ -2,21 +2,23 @@
 """miniuser's test base classes"""
 
 # Python imports
-from unittest import skip # noqa
+from unittest import skip  # noqa
 
 # Django imports
-from django.test import override_settings
 from django.contrib.admin import ModelAdmin
-from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
+from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.urls import reverse
+from django.test import override_settings
 from django.test.client import RequestFactory
+from django.urls import reverse
+
+# app imports
+from miniuser.admin import MiniUserAdmin, MiniUserAdminStaffStatusFilter
+from miniuser.models import MiniUser
 
 # app imports
 from .utils.testcases import MiniuserTestCase
-from ..models import MiniUser
-from ..admin import MiniUserAdminStaffStatusFilter, MiniUserAdmin
 
 
 class MiniUserAdminStaffStatusFilterTest(MiniuserTestCase):

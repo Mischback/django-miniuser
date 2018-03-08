@@ -4,11 +4,22 @@
 This file contains minimum settings to perform tests."""
 
 # Python imports
-from os.path import abspath, dirname, join
+import sys
+from os.path import abspath, dirname, join, normpath
 
-
-# path to the test.util directory
+# path to the tests.util directory
 TEST_ROOT = dirname(dirname(abspath(__file__)))
+
+PROJECT_ROOT = dirname(TEST_ROOT)
+
+# add PROJECT_ROOT to Python path
+sys.path.append(normpath(PROJECT_ROOT))
+
+# enable debugging (will be set to False by running tests)
+DEBUG = True
+
+# allow all hosts (will be set to [] by running tests)
+ALLOWED_HOSTS = ['*']
 
 # database configuration
 DATABASES = {
@@ -53,7 +64,7 @@ TEMPLATES = [
 AUTH_USER_MODEL = 'miniuser.MiniUser'
 
 # we need a test specific url configuration
-ROOT_URLCONF = 'miniuser.tests.utils.project.urls'
+ROOT_URLCONF = 'tests.utils.test_urls'
 
 # respect app specific warning
 LOGIN_URL = 'miniuser:login'

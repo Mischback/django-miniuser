@@ -9,6 +9,7 @@ into your project's urls.py."""
 
 # Django imports
 from django.conf.urls import url
+
 try:
     # Django > 1.10
     from django.contrib.auth.views import LoginView, LogoutView

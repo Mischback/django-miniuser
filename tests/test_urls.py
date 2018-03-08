@@ -2,10 +2,10 @@
 """miniuser's test base classes"""
 
 # Python imports
-from unittest import skip # noqa
+from unittest import skip  # noqa
 
 # Django imports
-from django.test import override_settings # noqa
+from django.test import override_settings  # noqa
 from django.urls import reverse
 
 # app imports
