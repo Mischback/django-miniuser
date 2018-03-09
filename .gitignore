@@ -16,6 +16,9 @@ test.sqlite
 .coverage.*
 htmlcov/
 
+# do NOT track Sphinx build directory
+docs/build/
+
 # do NOT track compiled language files
 *.mo
 *.pot

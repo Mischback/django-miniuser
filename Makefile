@@ -46,6 +46,10 @@ compilemessages: ensure_virtual_env
 coverage: ensure_virtual_env test
 	tox -e coverage-report
 
+# build the documentation using Sphinx
+doc: ensure_virtual_env
+	tox -e doc
+
 # django-admin.py diffsettings
 diffsettings: ensure_virtual_env
 	$(DJANGO_CMD) diffsettings $(DJANGO_DEV_POSTFIX)
