@@ -129,6 +129,7 @@ def check_correct_values(app_configs, **kwargs):
         errors.append(E005)
     if not re.match('^#[0-9A-Fa-f]{6}$', settings.MINIUSER_ADMIN_STATUS_COLOR_STAFF):
         errors.append(E006)
+    # TODO: DO NOT MATCH linebreaks or other control chars!
     if not re.match('^.{1}$', settings.MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER):
         errors.append(E007)
     if not re.match('^.{1}$', settings.MINIUSER_ADMIN_STATUS_CHAR_STAFF):
