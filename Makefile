@@ -11,8 +11,8 @@ DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPAT
 
 .SILENT:
 .PHONY: admin benchmark check clean compilemessages coverage diffsettings \
-		ensure_virtual_env flake8 help help-all isort isort-full makemessages \
-		makemigrations runserver shell test test-tag
+		doc doc-srv ensure_virtual_env flake8 help help-all isort isort-full \
+		makemessages makemigrations runserver shell test test-tag
 
 
 # django-admin.py version
@@ -50,6 +50,10 @@ coverage: ensure_virtual_env test
 doc: ensure_virtual_env
 	tox -e doc
 
+# access the documentation
+doc-srv: ensure_virtual_env
+	tox -e doc-srv
+
 # django-admin.py diffsettings
 diffsettings: ensure_virtual_env
 	$(DJANGO_CMD) diffsettings $(DJANGO_DEV_POSTFIX)
@@ -73,6 +77,8 @@ help:
 	echo "  benchmark   Shows some statistics like LOC"
 	echo "  clean       Cleans the environment"
 	echo "  coverage    Reports code coverage for the test suite"
+	echo "  doc         Builds the documenation using Sphinx"
+	echo "  doc-srv     Serves the html documenation on port 8082"
 	echo "  flake8      Checks source code for PEP8 compliance; additionally identifies"
 	echo "                misaligned import statements"
 	echo "  isort       Shows the proposed changes for Python imports using 'isort'"
@@ -104,6 +110,8 @@ help-tech:
 	echo "  coverage         coverage run --parallel tests/runtests.py"
 	echo "                   coverage combine"
 	echo "                   coverage report"
+	echo "  doc              cd docs && make html"
+	echo "  doc-srv          cd docs/build/html && python -m http.server 8082"
 	echo "  flake8           flake8 ."
 	echo "  isort            isort . --recursive --diff"
 	echo "  isort-full       isort . --recursive"
