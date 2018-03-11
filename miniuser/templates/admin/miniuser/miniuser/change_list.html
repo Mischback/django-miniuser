@@ -1,5 +1,9 @@
 {% extends "admin/miniuser/change_list.html" %}
 {% load i18n admin_urls static admin_list %}
+{% comment %}
+This includes a legend to the list view of django-miniuser's MiniUser objects.
+The legend will take into account, which presentation of usernames is used and will include a legend only, if a custom presentation is specified.
+{% endcomment %}
 {% block result_list %}
     {% if action_form and actions_on_top and cl.show_admin_actions %}{% admin_actions %}{% endif %}
     {% result_list cl %}

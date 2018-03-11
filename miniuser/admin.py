@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""miniuser's admin integration"""
+"""django-miniuser Admin integration
+
+This file provides all specific classes and functions, that are used in Django's
+admin backend.
+
+TODO: How does this one react, if Django's admin is not activated (not included in INSTALLED_APPS)?
+"""
 
 # Django imports
 from django.conf import settings

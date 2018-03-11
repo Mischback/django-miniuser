@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-"""miniuser's test settings.
+"""django-miniuser: Development/test settings.
 
-This file contains minimum settings to perform tests."""
+This file contains minimum settings to run the development inside of
+tox-environments and run the tests.
+
+Please note, that some settings are explicitly set by the testrunner (see
+runtests.py), i.e. migrations will be disabled by default during tests."""
 
 # Python imports
 import sys

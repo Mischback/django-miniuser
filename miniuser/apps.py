@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-"""Application configuration"""
+"""django-miniuser: Application configuration
+
+Provides the AppConfig class, that is required by Django. Injection of
+app-specific settings is done here, aswell as the registration of app-specific
+checks, that will be executed by Django's check framework.
+
+TODO: Currently the errors and warnings are defined here. Should they be moved to exceptions.py?
+"""
 
 # Python imports
 import re

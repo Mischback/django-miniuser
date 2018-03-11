@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""miniuser's test base classes"""
+"""django-miniuser: Tests for the AppConfig
+
+These tests target the code in miniuser/apps.py."""
 
 # Python imports
 from unittest import skip  # noqa
