@@ -13,8 +13,8 @@ DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPAT
 
 .SILENT:
 .PHONY: 00 admin benchmark check clean compilemessages coverage createsuperuser \
-		diffsettings doc doc-srv ensure_virtual_env flake8 help help-all isort \
-		isort-full makemessages makemigrations runserver shell test test-tag
+		diffsettings doc doc-srv flake8 help help-all isort isort-full \
+		makemessages makemigrations runserver shell test test-tag
 
 # default target prints help
 00: help
@@ -22,15 +22,15 @@ DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPAT
 # django-admin.py version
 # 	used to pass generic admin commands
 admin_cmd ?= version
-admin: ensure_virtual_env
+admin:
 	$(DJANGO_CMD) $(admin_cmd) $(DJANGO_DEV_POSTFIX)
 
 # counts LoC
-benchmark: ensure_virtual_env
+benchmark:
 	tox -e flake8 -- --benchmark
 
 # django-admin.py check
-check: ensure_virtual_env
+check:
 	$(DJANGO_CMD) check $(DJANGO_DEV_POSTFIX)
 
 # deletes all temporary files created by Django
@@ -43,39 +43,30 @@ clean:
 	rm -rf htmlcov
 
 # django-admin.py compilemessages
-compilemessages: ensure_virtual_env
+compilemessages:
 	$(DJANGO_CMD) compilemessages $(DJANGO_DEV_POSTFIX)
 
-createsuperuser: ensure_virtual_env
+createsuperuser:
 	$(DJANGO_CMD) createsuperuser $(DJANGO_DEV_POSTFIX)
 
 # performs the tests and measures code coverage
-coverage: ensure_virtual_env clean test
+coverage:   clean test
 	tox -e coverage-report
 
 # django-admin.py diffsettings
-diffsettings: ensure_virtual_env
+diffsettings:
 	$(DJANGO_CMD) diffsettings $(DJANGO_DEV_POSTFIX)
 
 # build the documentation using Sphinx
-doc: ensure_virtual_env
+doc:
 	tox -e doc
 
 # access the documentation
-doc-srv: ensure_virtual_env
+doc-srv:
 	tox -e doc-srv
 
-# most of the commands can only be used inside of the virtual environment
-# TODO: get rid of this and install tox into systems Python
-ensure_virtual_env:
-	if [ -z $$VIRTUAL_ENV ]; then \
-		echo "You don't have a virtualenv enabled."; \
-		echo "Please enable the virtualenv first!"; \
-		exit 1; \
-	fi
-
 # runs flake8 to check for PEP8 compliance
-flake8: ensure_virtual_env
+flake8:
 	tox -e flake8
 
 # TODO: document, how the "default" env can be changed in tox.ini [util]
@@ -135,39 +126,39 @@ help-tech:
 	echo ""
 
 # only checking the imports and showing the diff
-isort: ensure_virtual_env
+isort:
 	tox -e isort -- --diff
 
 # actually executes isort and changes the files!
-isort-full: ensure_virtual_env
+isort-full:
 	tox -e isort
 
 # django-admin.py makemessages
-makemessages: ensure_virtual_env
+makemessages:
 	$(DJANGO_CMD) makemessages -a $(DJANGO_DEV_POSTFIX)
 
 # django-admin.py makemigrations
-makemigrations: ensure_virtual_env
+makemigrations:
 	$(DJANGO_CMD) makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
 
 # django-admin.py runserver 0:8080
 host_port ?= 0:8080
-runserver: ensure_virtual_env
+runserver:
 	$(DJANGO_CMD) migrate -v 0 $(DJANGO_DEV_POSTFIX)
 	$(DJANGO_CMD) runserver $(host_port) $(DJANGO_DEV_POSTFIX)
 
 # django-admin.py shell
 shell_cmd ?=
-shell: ensure_virtual_env
+shell:
 	$(DJANGO_CMD) shell $(shell_cmd) $(DJANGO_DEV_POSTFIX)
 
 # runs the tests in one single tox environment
-test: ensure_virtual_env
+test:
 	tox -e test
 
 # runs the tests with a given tag
 tag ?= current
-test-tag: ensure_virtual_env
+test-tag:
 	tox -e test -- --tag=$(tag)
 
 # find TODOs
@@ -176,6 +167,6 @@ todo_flags !=
 todo:
 	grep --color --exclude=.coverage --exclude-dir=.tox --exclude-dir=build -rnw$(todo_flags) . -e $(todo_alt)
 
-tox: ensure_virtual_env
+tox:
 #	tox | sed -f sed.todo | sed -e 'N;s/\(.*\) create: .*\nERROR: .*/Skipped \1/' | sed -e 'N;s/\(.*\) create: .*\nERROR: .*/Skipped \1/'
 	tox
