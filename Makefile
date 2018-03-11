@@ -170,6 +170,12 @@ tag ?= current
 test-tag: ensure_virtual_env
 	tox -e test -- --tag $(tag)
 
+# find TODOs
+todo_alt ?= TODO
+todo_flags !=
+todo:
+	grep --color --exclude=.coverage --exclude-dir=.tox --exclude-dir=build -rnw$(todo_flags) . -e $(todo_alt)
+
 tox: ensure_virtual_env
 #	tox | sed -f sed.todo | sed -e 'N;s/\(.*\) create: .*\nERROR: .*/Skipped \1/' | sed -e 'N;s/\(.*\) create: .*\nERROR: .*/Skipped \1/'
 	tox
