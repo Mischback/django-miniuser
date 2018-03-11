@@ -104,6 +104,14 @@ E010 = Error(
     id='miniuser.e010',
 )
 
+E011 = Error(
+    _("AUTH_USER_MODEL has to be 'miniuser.MiniUser'"),
+    hint=_(
+        "Please check your settings and ensure, that you pointed the "
+        "AUTH_USER_MODEL to django-miniuser's MiniUser-class"),
+    id='miniuser.e011',
+)
+
 W001 = Warning(
     _("LOGIN_URL is *not* 'miniuser:login'."),
     hint=_(
@@ -161,6 +169,8 @@ def check_correct_values(app_configs, **kwargs):
     # MiniUserAdmin class instead.
     if not isinstance(settings.MINIUSER_ADMIN_SHOW_SEARCHBOX, bool):
         errors.append(E010)
+    if not settings.AUTH_USER_MODEL == 'miniuser.MiniUser':
+        errors.append(E011)
 
     return errors
 
@@ -235,6 +245,20 @@ class MiniUserConfig(AppConfig):
         set_app_default_setting('MINIUSER_ADMIN_STATUS_CHAR_STAFF', '$')
         """Specifies the character that indicates a user with staff-status.
         Has to be a single character!"""
+
+        set_app_default_setting('AUTH_USER_MODEL', 'miniuser.MiniUser')
+        """Sets the app's MiniUser class as Django's AUTH_USER_MODEL.
+
+        This is necessary to actually use MiniUser as the default handler of all
+        authentication related activities.
+
+        TODO: What if the app is installed in another path?
+        TODO: What if the app's user model is extended?
+        TODO: further investigation: Why has this setting to be present in settings module?!
+
+        The setting is not really injected here (well, it might be); Django's
+        check framework complains about this setting, if it is not present in
+        Django's settings module."""
 
         set_app_default_setting('LOGIN_URL', 'miniuser:login')
         """Set the app's login as the default login view.

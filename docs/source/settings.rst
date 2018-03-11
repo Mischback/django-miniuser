@@ -92,6 +92,26 @@ Available Settings
         Accepted values: any single character (default: ``'#'``)
 
 
+Relevant Django settings
+------------------------
+
+In addition to the app specific settings, **django-miniuser** relies on certain
+Django built-in settings. The app will automatically check these settings
+aswell, because they are used throughout the app.
+
+.. glossary ::
+
+    ``AUTH_USER_MODEL``
+        This setting has to be set to **django-miniuser**'s MiniUser class,
+        which will handle authentication-related functions.
+
+        Currently, Django's check-framework will raise an error and present an
+        error message to the user. This will be further evaluated, especially
+        to give the user some more freedom, in what to do about his user model.
+
+        Accepted values: 'miniuser.MiniUser' (default: 'miniuser.MiniUser')
+
+
 Developer's Description
 -----------------------
 
