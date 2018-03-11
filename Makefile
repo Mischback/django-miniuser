@@ -1,20 +1,16 @@
+# This Makefile is used as an interface to tox
+#
+# Still relying on make for convenience, because it offers tab completion for
+# some common development tasks.
+#
+# Just type make to see the help on the available commands
+
 APP := miniuser
-
-LOCALPATH := ./
-PYTHONPATH := $(LOCALPATH)/
-PYTHON_BIN := $(VIRTUAL_ENV)/bin
-
-TOX_UTIL_ENV := tox -e util
-DJANGO_CMD := $(TOX_UTIL_ENV) -- django-admin.py
-
-# TODO: REMOVE this Django-specific bullshit from the make file and include it into tox configuration
-DJANGO_DEV_SETTINGS := tests.utils.settings_dev
-DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 .SILENT:
 .PHONY: 00 admin benchmark check clean compilemessages coverage createsuperuser \
 		diffsettings doc doc-srv flake8 help help-all isort isort-full \
-		makemessages makemigrations runserver shell test test-tag
+		makemessages makemigrations migrate runserver shell test test-tag
 
 # default target prints help
 00: help
@@ -23,7 +19,7 @@ DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPAT
 # 	used to pass generic admin commands
 admin_cmd ?= version
 admin:
-	$(DJANGO_CMD) $(admin_cmd) $(DJANGO_DEV_POSTFIX)
+	tox -e django -- $(admin_cmd)
 
 # counts LoC
 benchmark:
@@ -31,31 +27,32 @@ benchmark:
 
 # django-admin.py check
 check:
-	$(DJANGO_CMD) check $(DJANGO_DEV_POSTFIX)
+	$(MAKE) admin admin_cmd=check
 
 # deletes all temporary files created by Django
 clean:
+	tox -e coverage-report -- coverage erase
 	find . -iname "*.pyc" -delete
 	find . -iname "__pycache__" -delete
 	find . -iname "test.sqlite" -delete
 	find . -iname ".coverage.*" -delete
-	$(TOX_UTIL_ENV) -- coverage erase
 	rm -rf htmlcov
 
 # django-admin.py compilemessages
 compilemessages:
-	$(DJANGO_CMD) compilemessages $(DJANGO_DEV_POSTFIX)
-
-createsuperuser:
-	$(DJANGO_CMD) createsuperuser $(DJANGO_DEV_POSTFIX)
+	$(MAKE) admin admin_cmd=compilemessages
 
 # performs the tests and measures code coverage
 coverage:   clean test
 	tox -e coverage-report
 
+
+createsuperuser: migrate
+	$(MAKE) admin admin_cmd=createsuperuser
+
 # django-admin.py diffsettings
 diffsettings:
-	$(DJANGO_CMD) diffsettings $(DJANGO_DEV_POSTFIX)
+	$(MAKE) admin admin_cmd=diffsettings
 
 # build the documentation using Sphinx
 doc:
@@ -83,6 +80,7 @@ help:
 	echo "  isort-full  Automatically sort Python imports in all source code files"
 	echo "  test        Runs the test suite"
 	echo "  test-tag    Runs the tests for a given tag (default: 'current')"
+	echo "  tox              Runs tox"
 	echo ""
 	echo "Django command shortcuts"
 	echo "  admin            Generic wrapper to run django-admin CMD (default: 'version')"
@@ -93,6 +91,7 @@ help:
 	echo "  diffsettings     Shows the differences to Django's default settings"
 	echo "  makemessages     Retrieves all strings marked for translation"
 	echo "  makemigrations   Creates the migrations for the app"
+	echo "  migrate          Actually applies the migrations into the common environment"
 	echo "  runserver        Runs Django's development server (default: 0:8080)"
 	echo "                     You can specify a different host:port by setting host_port"
 	echo "                     like 'make runserver host_port=0:7999'"
@@ -114,15 +113,21 @@ help-tech:
 	echo "  isort            isort . --recursive --diff"
 	echo "  isort-full       isort . --recursive"
 	echo "  test             coverage run --parallel tests/runtests.py"
-	echo "  test-tag         coverage run --parallel tests/runtests.py --tag [current]"
+	echo "  test-tag         coverage run --parallel tests/runtests.py --tag=[current]"
+	echo "  tox              tox"
 	echo ""
 	echo "  admin            django-admin.py [version]"
 	echo "  check            django-admin.py check"
 	echo "  compilemessages  django-admin.py compilemessages"
 	echo "  diffsettings     django-admin.py diffsettings"
 	echo "  makemessages     django-admin.py makemessages"
+	echo "  makemigrations   django-admin.py makemigrations"
+	echo "  migrate          django-admin.py migrate -v 0"
 	echo "  runserver        django-admin.py runserver [0:8080]"
 	echo "  shell            django-admin.py shell"
+	echo ""
+	echo "These commands are run in the [util] environment. If you want to specify a"
+	echo "  different Python- or Django-version, change the settings in tox.ini [testenv:util]"
 	echo ""
 
 # only checking the imports and showing the diff
@@ -135,22 +140,25 @@ isort-full:
 
 # django-admin.py makemessages
 makemessages:
-	$(DJANGO_CMD) makemessages -a $(DJANGO_DEV_POSTFIX)
+	$(MAKE) admin admin_cmd="makemessages -a"
 
 # django-admin.py makemigrations
 makemigrations:
-	$(DJANGO_CMD) makemigrations $(APP) $(DJANGO_DEV_POSTFIX)
+	$(MAKE) admin admin_cmd="makemigrations $(APP)"
+
+# apply the migrations into the default environment
+migrate:
+	$(MAKE) admin admin_cmd="migrate -v 0"
 
 # django-admin.py runserver 0:8080
 host_port ?= 0:8080
-runserver:
-	$(DJANGO_CMD) migrate -v 0 $(DJANGO_DEV_POSTFIX)
-	$(DJANGO_CMD) runserver $(host_port) $(DJANGO_DEV_POSTFIX)
+runserver: migrate
+	$(MAKE) admin admin_cmd="runserver $(host_port)"
 
 # django-admin.py shell
-shell_cmd ?=
+shell_cmd ?= --version
 shell:
-	$(DJANGO_CMD) shell $(shell_cmd) $(DJANGO_DEV_POSTFIX)
+	$(MAKE) admin admin_cmd="shell $(shell_cmd)"
 
 # runs the tests in one single tox environment
 test:
