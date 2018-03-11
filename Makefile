@@ -168,7 +168,7 @@ test: ensure_virtual_env
 # runs the tests with a given tag
 tag ?= current
 test-tag: ensure_virtual_env
-	tox -e test -- --tag $(tag)
+	tox -e test -- --tag=$(tag)
 
 # find TODOs
 todo_alt ?= TODO

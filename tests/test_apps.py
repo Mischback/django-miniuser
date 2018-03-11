@@ -8,7 +8,7 @@ from unittest import skip  # noqa
 
 # Django imports
 from django.conf import settings
-from django.test import override_settings
+from django.test import override_settings, tag
 
 # app imports
 from miniuser.apps import (
@@ -55,24 +55,28 @@ class MiniUserConfigTest(MiniuserTestCase):
         with self.assertRaises(AttributeError):
             self.assertEqual(settings.test_setting, 'foo')
 
+    @tag('checks')
     @override_settings(MINIUSER_DEFAULT_ACTIVE='foo')
     def test_check_e001(self):
         """MINIUSER_DEFAULT_ACTIVE must be a boolean value"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E001])
 
+    @tag('checks')
     @override_settings(MINIUSER_LOGIN_NAME='foo')
     def test_check_e002(self):
         """MINIUSER_LOGIN_NAME must be 'username', 'email' or 'both'"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E002])
 
+    @tag('checks')
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL='foo')
     def test_check_e003(self):
         """MINIUSER_REQUIRE_VALID_EMAIL must be a boolean value"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E003])
 
+    @tag('checks')
     @override_settings(MINIUSER_DEFAULT_ACTIVE=True)
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
     def test_check_e004(self):
@@ -80,53 +84,55 @@ class MiniUserConfigTest(MiniuserTestCase):
         errors = check_configuration_constraints(None)
         self.assertEqual(errors, [E004])
 
+    @tag('checks')
     @override_settings(MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER='#112233foo')
     def test_check_e005(self):
         """MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER must be a hexadecimal color code"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E005])
 
+    @tag('checks')
     @override_settings(MINIUSER_ADMIN_STATUS_COLOR_STAFF='foo#112233')
     def test_check_e006(self):
         """MINIUSER_ADMIN_STATUS_COLOR_STAFF must be a hexadecimal color code"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E006])
 
+    @tag('checks')
     @override_settings(MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER='foo')
     def test_check_e007(self):
         """MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be one single char"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E007])
 
+    @tag('checks')
     @override_settings(MINIUSER_ADMIN_STATUS_CHAR_STAFF='')
     def test_check_e008(self):
         """MINIUSER_ADMIN_STATUS_CHAR_STAFF must be one single char"""
         errors = check_correct_values(None)
         self.assertEqual(errors, [E008])
 
+    @tag('checks')
     @override_settings(MINIUSER_ADMIN_LIST_DISPLAY=('foo', 'bar'))
     def test_check_e009(self):
         errors = check_correct_values(None)
         self.assertEqual(errors, [E009])
 
+    @tag('checks')
     @override_settings(MINIUSER_ADMIN_SHOW_SEARCHBOX='foo')
     def test_check_e010(self):
         errors = check_correct_values(None)
         self.assertEqual(errors, [E010])
 
+    @tag('checks')
     @override_settings(AUTH_USER_MODEL='foo')
     def test_check_e011(self):
         errors = check_correct_values(None)
         self.assertEqual(errors, [E011])
 
-    @override_settings(LOGIN_URL='/')
-    def test_check_w001(self):
-        """LOGIN_URL should be 'miniuser:login'"""
-        errors = check_configuration_recommendations(None)
-        self.assertEqual(errors, [W001])
-
+    @tag('checks')
     @override_settings(INSTALLED_APPS=[app for app in settings.INSTALLED_APPS if app != 'django.contrib.admin'])
-    def test_check_w002(self):
+    def test_check_i001(self):
         """How is a missing admin interface handled?"""
 
         # remove the settings, that are set in admin.py
@@ -136,3 +142,10 @@ class MiniUserConfigTest(MiniuserTestCase):
         errors = check_correct_values(None)
         # print(settings.MINIUSER_ADMIN_LIST_DISPLAY)
         self.assertEqual(errors, [I001])
+
+    @tag('checks')
+    @override_settings(LOGIN_URL='/')
+    def test_check_w001(self):
+        """LOGIN_URL should be 'miniuser:login'"""
+        errors = check_configuration_recommendations(None)
+        self.assertEqual(errors, [W001])

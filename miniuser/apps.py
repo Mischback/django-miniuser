@@ -3,11 +3,7 @@
 
 Provides the AppConfig class, that is required by Django. Injection of
 app-specific settings is done here, aswell as the registration of app-specific
-checks, that will be executed by Django's check framework.
-
-TODO: Currently the errors and warnings are defined here. Should they be moved to exceptions.py?
-TODO: There is a '?' when an error, info or warning is raised... Can that be set to app name?
-"""
+checks, that will be executed by Django's check framework."""
 
 # Python imports
 import re

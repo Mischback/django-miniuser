@@ -11,7 +11,7 @@ from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
-from django.test import override_settings
+from django.test import override_settings, tag
 from django.test.client import RequestFactory
 from django.urls import reverse
 
@@ -23,6 +23,7 @@ from miniuser.models import MiniUser
 from .utils.testcases import MiniuserTestCase
 
 
+@tag('admin')
 class MiniUserAdminStaffStatusFilterTest(MiniuserTestCase):
     """Tests the custom filter"""
 
@@ -70,6 +71,7 @@ class MiniUserAdminStaffStatusFilterTest(MiniuserTestCase):
             self.assertEqual(f_result[3], True)
 
 
+@tag('admin')
 class MiniUserAdminChangeListTest(MiniuserTestCase):
     """Tests the custom ModelAdmin"""
 
@@ -92,6 +94,7 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
         u.is_superuser = True
         self.assertEqual(ma.status_aggregated(u), 'superuser')
 
+    @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_STATUS_COLOR_STAFF='#f0f0f0',
         MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER='#0f0f0f'
@@ -116,6 +119,7 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
             '<span style="color: {};">{}</span>'.format('#0f0f0f', u.username)
         )
 
+    @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_STATUS_CHAR_STAFF='a',
         MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER='b'
@@ -142,6 +146,7 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
 
         self.assertEqual(ma.email_with_status(u), '{} {}'.format(_boolean_icon(u.email_is_verified), u.email))
 
+    @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_LIST_DISPLAY=['username_color_status'],
         MINIUSER_ADMIN_STATUS_COLOR_STAFF='#f0f0f0',
@@ -153,6 +158,7 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
         ma = MiniUserAdmin(MiniUser, self.site)
         self.assertEqual(ma.get_miniuser_legend(), {'color': {'superuser': '#0f0f0f', 'staff': '#f0f0f0'}})
 
+    @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_LIST_DISPLAY=['username_character_status'],
         MINIUSER_ADMIN_STATUS_CHAR_STAFF='a',
@@ -164,6 +170,7 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
         ma = MiniUserAdmin(MiniUser, self.site)
         self.assertEqual(ma.get_miniuser_legend(), {'character': {'superuser': 'b', 'staff': 'a'}})
 
+    @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_LIST_DISPLAY=['username_color_status', 'username_character_status'],
         MINIUSER_ADMIN_STATUS_COLOR_STAFF='#f0f0f0',
