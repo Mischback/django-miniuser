@@ -70,7 +70,7 @@ TEMPLATES = [
 AUTH_USER_MODEL = 'miniuser.MiniUser'
 
 # we need a development/test specific url configuration
-ROOT_URLCONF = 'tests.utils.test_urls'
+ROOT_URLCONF = 'tests.utils.urls_dev'
 
 # respect app specific warning
 LOGIN_URL = 'miniuser:login'

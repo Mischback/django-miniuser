@@ -50,7 +50,7 @@ createsuperuser: ensure_virtual_env
 	$(DJANGO_CMD) createsuperuser $(DJANGO_DEV_POSTFIX)
 
 # performs the tests and measures code coverage
-coverage: ensure_virtual_env test
+coverage: ensure_virtual_env clean test
 	tox -e coverage-report
 
 # django-admin.py diffsettings

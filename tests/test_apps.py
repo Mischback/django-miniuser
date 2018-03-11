@@ -12,8 +12,8 @@ from django.test import override_settings
 
 # app imports
 from miniuser.apps import (
-    E001, E002, E003, E004, E005, E006, E007, E008, E009, E010, E011, W001,
-    check_configuration_constraints, check_configuration_recommendations,
+    E001, E002, E003, E004, E005, E006, E007, E008, E009, E010, E011, I001,
+    W001, check_configuration_constraints, check_configuration_recommendations,
     check_correct_values, set_app_default_setting,
 )
 
@@ -124,3 +124,15 @@ class MiniUserConfigTest(MiniuserTestCase):
         """LOGIN_URL should be 'miniuser:login'"""
         errors = check_configuration_recommendations(None)
         self.assertEqual(errors, [W001])
+
+    @override_settings(INSTALLED_APPS=[app for app in settings.INSTALLED_APPS if app != 'django.contrib.admin'])
+    def test_check_w002(self):
+        """How is a missing admin interface handled?"""
+
+        # remove the settings, that are set in admin.py
+        del settings.MINIUSER_ADMIN_LIST_DISPLAY
+        del settings.MINIUSER_ADMIN_SHOW_SEARCHBOX
+
+        errors = check_correct_values(None)
+        # print(settings.MINIUSER_ADMIN_LIST_DISPLAY)
+        self.assertEqual(errors, [I001])

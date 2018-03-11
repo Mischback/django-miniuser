@@ -6,6 +6,7 @@ app-specific settings is done here, aswell as the registration of app-specific
 checks, that will be executed by Django's check framework.
 
 TODO: Currently the errors and warnings are defined here. Should they be moved to exceptions.py?
+TODO: There is a '?' when an error, info or warning is raised... Can that be set to app name?
 """
 
 # Python imports
@@ -14,7 +15,7 @@ import re
 # Django imports
 from django.apps import AppConfig
 from django.conf import settings
-from django.core.checks import Error, Warning, register
+from django.core.checks import Error, Info, Warning, register
 from django.utils.translation import ugettext_lazy as _
 
 MESSAGE_BOOL = "Value of {} has to be a boolean value."
@@ -110,6 +111,14 @@ E011 = Error(
     id='miniuser.e011',
 )
 
+I001 = Info(
+    _("It seems, that you have not activated Django's admin backend."),
+    hint=_(
+        "If you are running without Django's admin backend, several features of "
+        "django-miniuser will not be available."),
+    id='miniuser.i001',
+)
+
 W001 = Warning(
     _("LOGIN_URL is not 'miniuser:login'."),
     hint=_(
@@ -140,32 +149,36 @@ def check_correct_values(app_configs, **kwargs):
     if not re.match('^.{1}$', settings.MINIUSER_ADMIN_STATUS_CHAR_STAFF):
         errors.append(E008)
 
-    # Please note, this setting is not injected in ready()-method. See admin.py
-    # MiniUserAdmin class instead.
-    for i in settings.MINIUSER_ADMIN_LIST_DISPLAY:
-        if i not in (
-            'username_color_status',
-            'username_character_status',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'status_aggregated',
-            'is_active',
-            'is_staff',
-            'is_superuser',
-            'email_is_verified',
-            'last_login',
-            'registration_date',
-            'email_with_status'
-        ):
-            errors.append(E009)
-            break
+    # Please note, that MINIUSER_ADMIN_LIST_DISPLAY and MINIUSER_ADMIN_SHOW_SEARCHBOX
+    #   are not injected in ready()-method, but directly in admin.py. Because of
+    #   this, they are guarded by a try/except-block, that prevents fuckup, if
+    #   Django's admin is not activated and thus, the setting not provided during
+    #   startup of admin.py
+    try:
+        for i in settings.MINIUSER_ADMIN_LIST_DISPLAY:
+            if i not in (
+                'username_color_status',
+                'username_character_status',
+                'username',
+                'email',
+                'first_name',
+                'last_name',
+                'status_aggregated',
+                'is_active',
+                'is_staff',
+                'is_superuser',
+                'email_is_verified',
+                'last_login',
+                'registration_date',
+                'email_with_status'
+            ):
+                errors.append(E009)
+                break
+        if not isinstance(settings.MINIUSER_ADMIN_SHOW_SEARCHBOX, bool):
+            errors.append(E010)
+    except AttributeError:
+        errors.append(I001)
 
-    # Please note, this setting is not injected in ready()-method. See admin.py
-    # MiniUserAdmin class instead.
-    if not isinstance(settings.MINIUSER_ADMIN_SHOW_SEARCHBOX, bool):
-        errors.append(E010)
     if not settings.AUTH_USER_MODEL == 'miniuser.MiniUser':
         errors.append(E011)
 
