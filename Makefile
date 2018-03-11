@@ -6,14 +6,18 @@ PYTHON_BIN := $(VIRTUAL_ENV)/bin
 
 TOX_UTIL_ENV := tox -e util
 DJANGO_CMD := $(TOX_UTIL_ENV) -- django-admin.py
+
+# TODO: REMOVE this Django-specific bullshit from the make file and include it into tox configuration
 DJANGO_DEV_SETTINGS := tests.utils.settings_dev
 DJANGO_DEV_POSTFIX := --settings=$(DJANGO_DEV_SETTINGS) --pythonpath=$(PYTHONPATH)
 
 .SILENT:
-.PHONY: admin benchmark check clean compilemessages coverage diffsettings \
-		doc doc-srv ensure_virtual_env flake8 help help-all isort isort-full \
-		makemessages makemigrations runserver shell test test-tag
+.PHONY: 00 admin benchmark check clean compilemessages coverage createsuperuser \
+		diffsettings doc doc-srv ensure_virtual_env flake8 help help-all isort \
+		isort-full makemessages makemigrations runserver shell test test-tag
 
+# default target prints help
+00: help
 
 # django-admin.py version
 # 	used to pass generic admin commands
@@ -42,9 +46,16 @@ clean:
 compilemessages: ensure_virtual_env
 	$(DJANGO_CMD) compilemessages $(DJANGO_DEV_POSTFIX)
 
+createsuperuser: ensure_virtual_env
+	$(DJANGO_CMD) createsuperuser $(DJANGO_DEV_POSTFIX)
+
 # performs the tests and measures code coverage
 coverage: ensure_virtual_env test
 	tox -e coverage-report
+
+# django-admin.py diffsettings
+diffsettings: ensure_virtual_env
+	$(DJANGO_CMD) diffsettings $(DJANGO_DEV_POSTFIX)
 
 # build the documentation using Sphinx
 doc: ensure_virtual_env
@@ -53,10 +64,6 @@ doc: ensure_virtual_env
 # access the documentation
 doc-srv: ensure_virtual_env
 	tox -e doc-srv
-
-# django-admin.py diffsettings
-diffsettings: ensure_virtual_env
-	$(DJANGO_CMD) diffsettings $(DJANGO_DEV_POSTFIX)
 
 # most of the commands can only be used inside of the virtual environment
 # TODO: get rid of this and install tox into systems Python
