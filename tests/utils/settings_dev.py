@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
-"""miniuser's test settings.
+"""django-miniuser: Development/test settings.
 
-This file contains minimum settings to perform tests."""
+This file contains minimum settings to run the development inside of
+tox-environments and run the tests.
+
+Please note, that some settings are explicitly set by the testrunner (see
+runtests.py), i.e. migrations will be disabled by default during tests."""
 
 # Python imports
 import sys
 from os.path import abspath, dirname, join, normpath
 
-# path to the tests.util directory
+# path to the tests directory
 TEST_ROOT = dirname(dirname(abspath(__file__)))
 
+# path to the project directory
 PROJECT_ROOT = dirname(TEST_ROOT)
 
 # add PROJECT_ROOT to Python path
@@ -35,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    'django.contrib.staticfiles',   # introduced to make the admin usable inside tox
     'miniuser.apps.MiniUserConfig'
 ]
 
@@ -63,11 +69,15 @@ TEMPLATES = [
 # apply our own user model
 AUTH_USER_MODEL = 'miniuser.MiniUser'
 
-# we need a test specific url configuration
-ROOT_URLCONF = 'tests.utils.test_urls'
+# we need a development/test specific url configuration
+ROOT_URLCONF = 'tests.utils.urls_dev'
 
 # respect app specific warning
 LOGIN_URL = 'miniuser:login'
+
+# provide a static URL for development
+# introduced to make the admin usable inside tox
+STATIC_URL = '/static/'
 
 # this is a minimum test requirement
 SECRET_KEY = 'only-for-testing'

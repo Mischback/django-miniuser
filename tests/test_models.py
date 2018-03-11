@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-"""miniuser's test base classes"""
+"""django-miniuser: Tests for the app's models
+
+These tests target the code in miniuser/models.py."""
 
 # Python imports
 from unittest import skip  # noqa
 
 # Django imports
-from django.test import override_settings
+from django.test import override_settings, tag
 
 # app imports
 from miniuser.exceptions import MiniUserConfigurationException
@@ -15,9 +17,11 @@ from miniuser.models import MiniUser
 from .utils.testcases import MiniuserTestCase
 
 
+@tag('model')
 class MiniUserManagerTest(MiniuserTestCase):
     """Tests targeting the MiniUserManager"""
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_DEFAULT_ACTIVE=True)
     def test_create_user_without_password(self):
         """Are fields populated while keeping the user inactive (lacking pw)?
@@ -32,6 +36,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertFalse(m.has_usable_password())
         self.assertFalse(m.is_active)
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_DEFAULT_ACTIVE=True)
     def test_create_user_with_password(self):
         """Are the fields populated, including the activation of the user?
@@ -44,6 +49,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertTrue(m.has_usable_password())
         self.assertTrue(m.is_active)
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_DEFAULT_ACTIVE=False)
     def test_create_user_without_activation(self):
         """Are the fields populated without activating the user?
@@ -57,6 +63,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertTrue(m.has_usable_password())
         self.assertFalse(m.is_active)
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_DEFAULT_ACTIVE=False)
     def test_create_user_respect_activation_setting(self):
         """Are the fields populated without activating the user?
@@ -81,6 +88,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         with self.assertRaisesMessage(ValueError, 'The username must be set!'):
             m = MiniUser.objects.create_user(None) # noqa
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
     def test_no_email_allowed(self):
         """If users require a email address is controlled by app specific setting
@@ -92,6 +100,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertFalse(m.email)
         self.assertEqual(m.email, '')
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
     def test_no_email_forbidden(self):
         """If users require an email address is controlled by app specific setting
@@ -114,6 +123,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertTrue(m.is_staff)
         self.assertTrue(m.is_superuser)
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_LOGIN_NAME='username')
     def test_natural_key_username(self):
         """Get a user by its username
@@ -125,6 +135,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         with self.assertRaises(MiniUser.DoesNotExist):
             n = MiniUser.objects.get_by_natural_key('foo@bar.com') # noqa
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_LOGIN_NAME='email')
     def test_natural_key_email(self):
         """Get a user by its email address
@@ -136,6 +147,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         with self.assertRaises(MiniUser.DoesNotExist):
             n = MiniUser.objects.get_by_natural_key('foo') # noqa
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_LOGIN_NAME='both')
     def test_natural_key_both(self):
         """Get a user by its username or email address
@@ -145,6 +157,7 @@ class MiniUserManagerTest(MiniuserTestCase):
         self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo'))
         self.assertEqual(m, MiniUser.objects.get_by_natural_key('foo@bar.com'))
 
+    @tag('miniuser_settings')
     @override_settings(MINIUSER_LOGIN_NAME='foo')
     def test_natural_key_invalid(self):
         """Raises an exception, if MINIUSER_LOGIN_NAME has undefined value
@@ -158,6 +171,7 @@ class MiniUserManagerTest(MiniuserTestCase):
             n = MiniUser.objects.get_by_natural_key('foo') # noqa
 
 
+@tag('model')
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""
 

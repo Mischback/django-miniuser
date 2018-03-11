@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
-"""MiniUser URL configuration
+"""django-miniuser: URL configuration
 
 Contains app specific URLs to decouple them from the project's URL config.
 
 Please include
     url(r'^miniuser/', include('miniuser.urls')),
-into your project's urls.py."""
+into your project's urls.py.
+
+Please note, that with Django1.11, class based Login- and Logout-views have been
+introduced. In order to be compatible with Django 1.10, some crazy and ugly
+magic is applied here.
+
+TODO: How does the namespacing or URLs work with different Django versions? (when was app_name introduced?)"""
 
 # Django imports
 from django.conf.urls import url

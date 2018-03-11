@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""miniuser's admin integration"""
+"""django-miniuser Admin integration
+
+This file provides all specific classes and functions, that are used in Django's
+admin backend."""
 
 # Django imports
 from django.conf import settings

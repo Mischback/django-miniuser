@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-"""miniuser's views"""
+"""django-miniuser: views"""

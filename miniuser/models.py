@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""miniuser's models"""
+"""django-miniuser: Model definitions"""
 
 from __future__ import unicode_literals
 

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""miniuser's test base classes"""
+"""django-miniuser: Base classes for tests
+
+Currently, this is just to keep things nice and tidy..."""
 
 # Django imports
 from django.test import TestCase

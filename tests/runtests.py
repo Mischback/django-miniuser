@@ -1,5 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""django-miniuser: App specific test-runner
+
+This test runner heavily relies on Django's DiscoverRunner. In fact, it is very
+close to Django's own test runner.
+
+It accepts less options and looks for the tests to be run in the current
+directory instead of app's test-directories.
+
+It can't be run on certain modules only (obviously), but on given tags."""
 
 # Python imports
 import argparse
