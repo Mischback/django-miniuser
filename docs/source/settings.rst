@@ -109,7 +109,50 @@ aswell, because they are used throughout the app.
         error message to the user. This will be further evaluated, especially
         to give the user some more freedom, in what to do about his user model.
 
+        See `Django's documentation <https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model>`_
+        for more details.
+
         Accepted values: 'miniuser.MiniUser' (default: 'miniuser.MiniUser')
+
+    ``LOGIN_URL``
+        If you want to use **django-miniuser**'s login view, set this to
+        'miniuser:login'.
+
+        This setting is checked on startup, but only a warning will be issued,
+        that can be safely ignored, if you provide your own login-view.
+
+        Please see `Django's documentation <https://docs.djangoproject.com/en/dev/ref/settings/#login-url>`_
+        for more details on accepted values.
+
+        Default value: ``'/accounts/login/'``
+
+        Recommended value: ``'miniuser:login'``
+
+    ``LOGIN_REDIRECT_URL``
+        You may specify a default redirect URL, if a login was successful.
+
+        Django provides a default value for this setting (``'/accounts/profile/'``,
+        see `Django's documentation <https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url>`_),
+        however, that view is not provided by Django or **django-miniuser**. It
+        is recommended, but not enforced, to point this to another URL.
+
+        Default value: ``'/accounts/profile/'``
+
+        Recommended value: ``'/'``
+
+    ``LOGOUT_REDIRECT_URL``
+        You may specify a default redirect URL, if the user was logged out successfully.
+
+        Django provides a default value for this setting (``None``, see `Django's
+        documentation <https://docs.djangoproject.com/en/dev/ref/settings/#logout-redirect-url>`_),
+        which will render the ``logout.html`` template. **django-miniuser**
+        provides this template, however, it is recommended, but not enforced, to
+        redirect the user back to the login page.
+
+        Default value: ``None``
+
+        Recommended value: ``'miniuser:login'`` (see ``LOGIN_URL`` above)
+
 
 
 Developer's Description

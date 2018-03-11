@@ -10,76 +10,70 @@ from django.conf import settings
 from django.core.checks import Error, Warning, register
 from django.utils.translation import ugettext_lazy as _
 
+MESSAGE_BOOL = "Value of {} has to be a boolean value."
+HINT_BOOL = "Please check your settings and ensure, that {} is a boolean value (True of False)."
+
 E001 = Error(
-    _("MINIUSER_DEFAULT_ACTIVE has to be True or False."),
-    hint=_(
-        "Please check your settings and ensure, that you put a boolean value "
-        "to this setting."),
+    _(MESSAGE_BOOL.format('MINIUSER_DEFAULT_ACTIVE')),
+    hint=_(HINT_BOOL.format('MINIUSER_DEFAULT_ACTIVE')),
     id='miniuser.e001',
 )
 
 E002 = Error(
-    _("MINIUSER_LOGIN_NAME has to be one of 'username', 'email' or 'both'."),
+    _("Value of MINIUSER_LOGIN_NAME is not valid."),
     hint=_(
         "Please check your settings and ensure, that MINIUSER_LOGIN NAME is one "
         "of 'username', 'email' or 'both'. Please note, that these values are "
-        "given as strings."
-    ),
+        "given as strings."),
     id='miniuser.e002',
 )
 
 E003 = Error(
-    _("MINIUSER_REQUIRE_VALID_EMAIL has to be True or False."),
-    hint=_(
-        "Please check your settings and ensure, that you put a boolean value "
-        "to this setting."),
+    _(MESSAGE_BOOL.format('MINIUSER_REQUIRE_VALID_EMAIL')),
+    hint=_(HINT_BOOL.format('MINIUSER_REQUIRE_VALID_EMAIL')),
     id='miniuser.e003',
 )
 
+# TODO: Improve the hint!
 E004 = Error(
     _("Values of MINIUSER_REQUIRE_VALID_EMAIL and MINIUSER_DEFAULT_ACTIVE do not match."),
     hint=_(
         "MINIUSER_REQUIRE_VALID_EMAIL = True implies MINIUSER_DEFAULT_ACTIVE = False. "
-        "Please check your settings!"
-    ),
+        "Please check your settings!"),
     id='miniuser.e004',
 )
 
 E005 = Error(
-    _("Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER is not a valid RGB color code."),
+    _("Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER has to be a valid RGB color code."),
     hint=_(
         "Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER has to be of the form "
         "'#rrggbb', where r, g and b may be hexadecimal digits (0-F). Please "
-        "note the '#'."
-    ),
+        "note the '#'."),
     id='miniuser.e005',
 )
 
 E006 = Error(
-    _("Value of MINIUSER_ADMIN_STATUS_COLOR_STAFF is not a valid RGB color code."),
+    _("Value of MINIUSER_ADMIN_STATUS_COLOR_STAFF has to be a valid RGB color code."),
     hint=_(
         "Value of MINIUSER_ADMIN_STATUS_COLOR_SUPERUSER has to be of the form "
         "'#rrggbb', where r, g and b may be hexadecimal digits (0-F). Please "
-        "note the '#'."
-    ),
+        "note the '#'."),
     id='miniuser.e006',
 )
 
 E007 = Error(
-    _("Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER is not valid."),
+    _("Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER has to be a single character."),
     hint=_(
         "Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be a single "
-        "character. Please check your settings!"
-    ),
+        "character. Please check your settings!"),
     id='miniuser.e007',
 )
 
 E008 = Error(
-    _("Value of MINIUSER_ADMIN_STATUS_CHAR_STAFF is not valid."),
+    _("Value of MINIUSER_ADMIN_STATUS_CHAR_STAFF has to be a single character."),
     hint=_(
         "Value of MINIUSER_ADMIN_STATUS_CHAR_SUPERUSER must be a single "
-        "character. Please check your settings!"
-    ),
+        "character. Please check your settings!"),
     id='miniuser.e008',
 )
 
@@ -91,16 +85,13 @@ E009 = Error(
         "'username_character_status', 'username', 'email', 'first_name', "
         "'last_name', 'status_aggregated', 'is_active', 'is_staff', "
         "'is_superuser', 'email_is_verified', 'last_login', 'registration_date' "
-        "and 'email_with_status'."
-    ),
+        "and 'email_with_status'."),
     id='miniuser.e009',
 )
 
 E010 = Error(
-    _("MINIUSER_ADMIN_SHOW_SEARCHBOX has to be True or False."),
-    hint=_(
-        "Please check your settings and ensure, that you put a boolean value "
-        "to this setting."),
+    _(MESSAGE_BOOL.format('MINIUSER_ADMIN_SHOW_SEARCHBOX')),
+    hint=_(HINT_BOOL.format('MINIUSER_ADMIN_SHOW_SEARCHBOX')),
     id='miniuser.e010',
 )
 
@@ -108,16 +99,15 @@ E011 = Error(
     _("AUTH_USER_MODEL has to be 'miniuser.MiniUser'"),
     hint=_(
         "Please check your settings and ensure, that you pointed the "
-        "AUTH_USER_MODEL to django-miniuser's MiniUser-class"),
+        "AUTH_USER_MODEL to django-miniuser's MiniUser-class."),
     id='miniuser.e011',
 )
 
 W001 = Warning(
-    _("LOGIN_URL is *not* 'miniuser:login'."),
+    _("LOGIN_URL is not 'miniuser:login'."),
     hint=_(
         "If you want to use MiniUsers login-functions, add LOGIN_URL to your "
-        "settings or modify its setting to 'miniuser:login'."
-    ),
+        "settings or modify its setting to 'miniuser:login'."),
     id='miniuser.w001',
 )
 
