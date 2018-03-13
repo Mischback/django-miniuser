@@ -8,12 +8,12 @@
 APP := miniuser
 
 .SILENT:
-.PHONY: 00 admin benchmark check clean compilemessages coverage createsuperuser \
-		diffsettings doc doc-srv flake8 help help-all isort isort-full \
+.PHONY: admin benchmark check clean compilemessages coverage createsuperuser \
+		default diffsettings doc doc-srv flake8 help help-all isort isort-full \
 		makemessages makemigrations migrate runserver shell test test-tag
 
 # default target prints help
-00: help
+default: help
 
 # django-admin.py version
 # 	used to pass generic admin commands
@@ -31,7 +31,7 @@ check:
 
 # deletes all temporary files created by Django
 clean:
-	tox -e coverage-report -- coverage erase
+	-tox -e coverage-report -- coverage erase
 	find . -iname "*.pyc" -delete
 	find . -iname "__pycache__" -delete
 	find . -iname "test.sqlite" -delete
@@ -46,7 +46,7 @@ compilemessages:
 coverage:   clean test
 	tox -e coverage-report
 
-
+# django-admin.py createsuperuser
 createsuperuser: migrate
 	$(MAKE) admin admin_cmd=createsuperuser
 
