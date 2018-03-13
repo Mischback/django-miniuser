@@ -9,12 +9,12 @@ user password-managing, login- and logout-functions.
     :target: https://badge.fury.io/gh/mischback%2Fdjango-miniuser
     :alt: Version
 
-.. image:: https://travis-ci.org/Mischback/django-miniuser.svg?branch=tox-travis-coveralls
+.. image:: https://travis-ci.org/Mischback/django-miniuser.svg?branch=development
     :target: https://travis-ci.org/Mischback/django-miniuser
     :alt: Build Status
 
-.. image:: https://coveralls.io/repos/github/Mischback/django-miniuser/badge.svg?branch=tox-travis-coveralls
-    :target: https://coveralls.io/github/Mischback/django-miniuser?branch=tox-travis-coveralls
+.. image:: https://coveralls.io/repos/github/Mischback/django-miniuser/badge.svg?branch=development
+    :target: https://coveralls.io/github/Mischback/django-miniuser?branch=development
     :alt: Code Coverage
 
 .. image:: https://readthedocs.org/projects/django-miniuser/badge/?version=latest
