@@ -5,9 +5,7 @@ from __future__ import unicode_literals
 
 # Django imports
 from django.conf import settings
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import BaseUserManager, PermissionsMixin
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
@@ -31,7 +29,9 @@ class MiniUserManager(BaseUserManager):
 
         # normalize username and email
         username = self.model.normalize_username(username)
-        email = self.normalize_email(email).lower()
+        email = self.normalize_email(email).lower().strip()
+        if email == '':
+            email = None
 
         user = self.model(
             username=username,
@@ -97,24 +97,9 @@ class MiniUserManager(BaseUserManager):
 
 
 @python_2_unicode_compatible
-class MiniUser(AbstractBaseUser, PermissionsMixin):
+class MiniUser(AbstractUser):
     """The user class extends the AbstractBaseUser and adds some custom fields
     to the default Django user."""
-
-    username_validator = UnicodeUsernameValidator()
-    """Make use of Django's built-in username validation"""
-
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        help_text=_('Required. 150 characters or less.'),
-        validators=[username_validator],
-        error_messages={
-            'unique': _('A user with that username already exists...')
-        }
-    )
-    """The name of the user, that may be used for login. Must be unique"""
 
     email = models.EmailField(
         _('email address'),
@@ -122,59 +107,18 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
         unique=True,
         blank=True,
         null=True,
+        default=None,
         error_messages={
             'unique': _('This mail address is already in use....')
         }
     )
     """The email address of the user. Must be unique"""
 
-    first_name = models.CharField(
-        _('first name'),
-        max_length=50,
-        blank=True,
-        help_text=_('Optional. 50 characters or less.')
-    )
-    """The first name of the user, optional."""
-
-    last_name = models.CharField(
-        _('last name'),
-        max_length=50,
-        blank=True,
-        help_text=_('Optional. 50 characters or less.')
-    )
-    """The last name of the user, optional."""
-
-    is_active = models.BooleanField(
-        _('active'),
-        default=False,
-        help_text=_(
-            'Designates whether this user should be treated as active. '
-            'Unselect this instead of deleting accounts.'
-        )
-    )
-    """This flag indicates, if the user is active. Meaning: the user is able
-    to log in."""
-
-    is_staff = models.BooleanField(
-        _('staff status'),
-        default=False,
-        help_text=_('Designates whether the user can log into this admin site.')
-    )
-    """This flag inidcates, if the user belongs to the site's staff and will
-    be able to log into the admin part of Django."""
-
     email_is_verified = models.BooleanField(
         _('email verification status'),
         default=False,
         help_text=_('Designates whether the user already verified his mail address.')
     )
-
-    registration_date = models.DateTimeField(
-        _('date of registration'),
-        default=timezone.now,
-        editable=False
-    )
-    """The date of the registration. Will be set on account creation."""
 
     last_login = models.DateTimeField(
         _('date of last login'),
@@ -189,22 +133,3 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email']
-
-    class Meta:
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
-
-    def __str__(self):
-        return self.get_username()
-
-    def get_full_name(self):
-        """Prior to Django 2.0 this method was required.
-
-        It should not be used in the app's admin pages."""
-        return self.get_username()  # pragma: nocover
-
-    def get_short_name(self):
-        """Prior to Django 2.0 this method was required.
-
-        It should not be used in the app's admin pages."""
-        return self.get_username()

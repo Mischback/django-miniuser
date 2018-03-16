@@ -96,9 +96,9 @@ class MiniUserManagerTest(MiniuserTestCase):
         MINIUSER_REQUIRE_VALID_EMAIL = False, so the user should be created
         without email address"""
         m = MiniUser.objects.create_user('foo')
-        # actually m.email is a blank string
+
         self.assertFalse(m.email)
-        self.assertEqual(m.email, '')
+        self.assertEqual(m.email, None)
 
     @tag('miniuser_settings')
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
@@ -174,9 +174,4 @@ class MiniUserManagerTest(MiniuserTestCase):
 @tag('model')
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""
-
-    def test_string(self):
-        """Tests the __str__-method"""
-        m = MiniUser.objects.create(username='django')
-        self.assertTrue(isinstance(m, MiniUser))
-        self.assertEqual(m.__str__(), m.username)
+    pass

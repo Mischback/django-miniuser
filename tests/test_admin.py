@@ -227,9 +227,9 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
     def test_action_activate(self):
         """Activation of multiple users"""
 
-        u = MiniUser.objects.create(username='user')
-        v = MiniUser.objects.create(username='foo')
-        w = MiniUser.objects.create(username='bar')
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        w = MiniUser.objects.create(username='bar', is_active=False)
 
         # try to activate a single user
         action_data = {
