@@ -4,13 +4,22 @@
 
 {% block content %}
 {% if form.errors %}
-<div class="form_errors">Your username and password didn't match. Please try again.</div>
 {% endif %}
 
-<div class="signup_form">
+<div class="signup-form">
+  <h1>Account Sign Up</h1>
   <form method="post" action="{% url 'miniuser:signup' %}">
-    {% csrf_token %}
+  {% for field in form.visible_fields %}
+    {{ field.label_tag }}
+    {{ field.errors }}
+    {{ field }}
+  {% endfor %}
 
+  {% for hidden in form.hidden_fields %}
+    {{ hidden }}
+  {% endfor %}
+  {% csrf_token %}
+  <input type="submit" value="Create new account" />
   </form>
 </div>
 {% endblock %}
