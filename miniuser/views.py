@@ -2,8 +2,8 @@
 """django-miniuser: views"""
 
 # Django imports
-from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
+from django.views.generic.edit import CreateView
 
 # app imports
 from miniuser.forms import MiniUserSignUpForm
