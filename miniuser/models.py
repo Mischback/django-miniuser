@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
@@ -96,7 +95,6 @@ class MiniUserManager(BaseUserManager):
             raise MiniUserConfigurationException(_("'MINIUSER_LOGIN_NAME' has an undefined value!"))
 
 
-@python_2_unicode_compatible
 class MiniUser(AbstractUser):
     """The user class extends the AbstractBaseUser and adds some custom fields
     to the default Django user."""
@@ -133,3 +131,17 @@ class MiniUser(AbstractUser):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email']
+
+    def update_last_login(self):
+        """Updates the timestamp of last login
+
+        Is triggered by a signal, see apps.MiniUserConfig::ready() for details.
+
+        Be aware: Django will automatically update a field called 'last_login',
+        even if it is not part of Django's default user-model.
+
+        TODO: Find Django's documentation, especially auth-app, where it's said,
+            that Django will automatically update fields called 'last_login',
+            even if Django's default user-model doesn't have that field!"""
+        self.last_login = timezone.now()
+        self.save()

@@ -11,8 +11,12 @@ import re
 # Django imports
 from django.apps import AppConfig
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
 from django.core.checks import Error, Info, Warning, register
 from django.utils.translation import ugettext_lazy as _
+
+# app imports
+from miniuser.signals import callback_user_logged_in
 
 MESSAGE_BOOL = "Value of {} has to be a boolean value."
 HINT_BOOL = "Please check your settings and ensure, that {} is a boolean value (True of False)."
@@ -311,3 +315,6 @@ class MiniUserConfig(AppConfig):
 
         # checking for some dependencies of the settings
         register(check_configuration_constraints)
+
+        # hooking into Django's signals
+        user_logged_in.connect(callback_user_logged_in)
