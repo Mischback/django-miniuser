@@ -16,13 +16,6 @@ from miniuser.models import MiniUser
 # app imports
 from .utils.testcases import MiniuserTestCase
 
-# Python 2/3 compatible import of unittest.mock (or just mock)
-# Installation of mock-library is included in tox.ini for 2.7 environments
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
 
 @tag('model')
 class MiniUserManagerTest(MiniuserTestCase):
@@ -181,17 +174,6 @@ class MiniUserManagerTest(MiniuserTestCase):
 @tag('model')
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""
-
-    @mock.patch('django.utils.timezone.now')
-    def test_update_last_login(self, mock_now):
-        """Should update the field to current timestamp"""
-
-        mock_now.return_value = '2018-03-16 13:37'
-
-        m = MiniUser.objects.create(username='foo')
-        m.update_last_login()
-
-        self.assertEqual(m.last_login, '2018-03-16 13:37')
 
     def test_fix_empty_email(self):
         """Empty email should be cleaned to 'None'"""

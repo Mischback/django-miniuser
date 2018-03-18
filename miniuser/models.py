@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
@@ -114,13 +113,6 @@ class MiniUser(AbstractUser):
         help_text=_('Designates whether the user already verified his mail address.')
     )
 
-    last_login = models.DateTimeField(
-        _('date of last login'),
-        # TODO: will default to the account creation timestamp. Must be adjusted during login.
-        default=timezone.now
-    )
-    """The date of the last login. Will be updated on every successfull login"""
-
     # apply the MiniUserManager
     objects = MiniUserManager()
 
@@ -141,17 +133,3 @@ class MiniUser(AbstractUser):
         # deactivate user without usable passwords
         if not self.has_usable_password():
             self.is_active = False
-
-    def update_last_login(self):
-        """Updates the timestamp of last login
-
-        Is triggered by a signal, see apps.MiniUserConfig::ready() for details.
-
-        Be aware: Django will automatically update a field called 'last_login',
-        even if it is not part of Django's default user-model.
-
-        TODO: Find Django's documentation, especially auth-app, where it's said,
-            that Django will automatically update fields called 'last_login',
-            even if Django's default user-model doesn't have that field!"""
-        self.last_login = timezone.now()
-        self.save()
