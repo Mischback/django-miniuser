@@ -29,8 +29,6 @@ class MiniUserManager(BaseUserManager):
         # normalize username and email
         username = self.model.normalize_username(username)
         email = self.normalize_email(email).lower().strip()
-        if email == '':
-            email = None
 
         user = self.model(
             username=username,
@@ -48,6 +46,9 @@ class MiniUserManager(BaseUserManager):
         # deactivate user without usable passwords
         if not user.has_usable_password():
             user.is_active = False
+
+        # last time cleaning
+        user.clean()
 
         user.save(using=self._db)
 
@@ -131,6 +132,13 @@ class MiniUser(AbstractUser):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email']
+
+    def clean(self):
+        """Provides some custom validation steps for MiniUser objects"""
+
+        # ensure that an empty email will be stored as 'None'
+        if self.email == '':
+            self.email = None
 
     def update_last_login(self):
         """Updates the timestamp of last login

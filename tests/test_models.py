@@ -192,3 +192,17 @@ class MiniUserModelTest(MiniuserTestCase):
         m.update_last_login()
 
         self.assertEqual(m.last_login, '2018-03-16 13:37')
+
+    def test_fix_empty_email(self):
+        """Empty email should be cleaned to 'None'"""
+
+        m = MiniUser.objects.create(username='foo', email='')
+        m.clean()
+        self.assertNotEqual(m.email, '')
+        self.assertEqual(m.email, None)
+
+        n = MiniUser.objects.create(username='bar', email='valid@localhost')
+        n.clean()
+        self.assertNotEqual(n.email, '')
+        self.assertNotEqual(n.email, None)
+        self.assertEqual(n.email, 'valid@localhost')
