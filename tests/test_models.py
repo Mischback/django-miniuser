@@ -16,6 +16,13 @@ from miniuser.models import MiniUser
 # app imports
 from .utils.testcases import MiniuserTestCase
 
+# Python 2/3 compatible import of unittest.mock (or just mock)
+# Installation of mock-library is included in tox.ini for 2.7 environments
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 
 @tag('model')
 class MiniUserManagerTest(MiniuserTestCase):
@@ -96,9 +103,9 @@ class MiniUserManagerTest(MiniuserTestCase):
         MINIUSER_REQUIRE_VALID_EMAIL = False, so the user should be created
         without email address"""
         m = MiniUser.objects.create_user('foo')
-        # actually m.email is a blank string
+
         self.assertFalse(m.email)
-        self.assertEqual(m.email, '')
+        self.assertEqual(m.email, None)
 
     @tag('miniuser_settings')
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
@@ -175,8 +182,13 @@ class MiniUserManagerTest(MiniuserTestCase):
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""
 
-    def test_string(self):
-        """Tests the __str__-method"""
-        m = MiniUser.objects.create(username='django')
-        self.assertTrue(isinstance(m, MiniUser))
-        self.assertEqual(m.__str__(), m.username)
+    @mock.patch('django.utils.timezone.now')
+    def test_update_last_login(self, mock_now):
+        """Should update the field to current timestamp"""
+
+        mock_now.return_value = '2018-03-16 13:37'
+
+        m = MiniUser.objects.create(username='foo')
+        m.update_last_login()
+
+        self.assertEqual(m.last_login, '2018-03-16 13:37')

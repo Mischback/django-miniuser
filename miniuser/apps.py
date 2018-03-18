@@ -11,8 +11,12 @@ import re
 # Django imports
 from django.apps import AppConfig
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
 from django.core.checks import Error, Info, Warning, register
 from django.utils.translation import ugettext_lazy as _
+
+# app imports
+from miniuser.signals import callback_user_logged_in
 
 MESSAGE_BOOL = "Value of {} has to be a boolean value."
 HINT_BOOL = "Please check your settings and ensure, that {} is a boolean value (True of False)."
@@ -88,7 +92,7 @@ E009 = Error(
         "can only contain the following values: 'username_color_status', "
         "'username_character_status', 'username', 'email', 'first_name', "
         "'last_name', 'status_aggregated', 'is_active', 'is_staff', "
-        "'is_superuser', 'email_is_verified', 'last_login', 'registration_date' "
+        "'is_superuser', 'email_is_verified', 'last_login', 'date_joined' "
         "and 'email_with_status'."),
     id='miniuser.e009',
 )
@@ -165,7 +169,7 @@ def check_correct_values(app_configs, **kwargs):
                 'is_superuser',
                 'email_is_verified',
                 'last_login',
-                'registration_date',
+                'date_joined',
                 'email_with_status'
             ):
                 errors.append(E009)
@@ -311,3 +315,6 @@ class MiniUserConfig(AppConfig):
 
         # checking for some dependencies of the settings
         register(check_configuration_constraints)
+
+        # hooking into Django's signals
+        user_logged_in.connect(callback_user_logged_in)
