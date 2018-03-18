@@ -92,7 +92,7 @@ E009 = Error(
         "can only contain the following values: 'username_color_status', "
         "'username_character_status', 'username', 'email', 'first_name', "
         "'last_name', 'status_aggregated', 'is_active', 'is_staff', "
-        "'is_superuser', 'email_is_verified', 'last_login', 'registration_date' "
+        "'is_superuser', 'email_is_verified', 'last_login', 'date_joined' "
         "and 'email_with_status'."),
     id='miniuser.e009',
 )
@@ -169,7 +169,7 @@ def check_correct_values(app_configs, **kwargs):
                 'is_superuser',
                 'email_is_verified',
                 'last_login',
-                'registration_date',
+                'date_joined',
                 'email_with_status'
             ):
                 errors.append(E009)
