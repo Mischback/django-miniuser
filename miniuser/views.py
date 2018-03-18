@@ -2,14 +2,14 @@
 """django-miniuser: views"""
 
 # Django imports
-from django.views.generic.edit import FormView
+from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 
 # app imports
 from miniuser.forms import MiniUserSignUpForm
 
 
-class MiniUserSignUpView(FormView):
+class MiniUserSignUpView(CreateView):
     """foobar"""
 
     form_class = MiniUserSignUpForm
