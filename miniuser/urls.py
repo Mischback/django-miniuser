@@ -16,6 +16,9 @@ TODO: How does the namespacing or URLs work with different Django versions? (whe
 # Django imports
 from django.conf.urls import url
 
+# app imports
+from miniuser.views import MiniUserSignUpView
+
 try:
     # Django > 1.10
     from django.contrib.auth.views import LoginView, LogoutView
@@ -45,4 +48,5 @@ app_name = 'miniuser'
 urlpatterns = [
     login_view(),
     logout_view(),
+    url(r'^signup/$', MiniUserSignUpView.as_view(), name='signup'),
 ]

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+{% if form.errors %}
+<div class="form_errors">Your username and password didn't match. Please try again.</div>
+{% endif %}
+
+<div class="signup_form">
+  <form method="post" action="{% url 'miniuser:signup' %}">
+    {% csrf_token %}
+
+  </form>
+</div>
+{% endblock %}
