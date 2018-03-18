@@ -45,12 +45,12 @@ class MiniUserSignUpForm(UserCreationForm):
         return cleaned_data
 
     def save(self, commit=True):
+        """Overrides the save()-method to include our model-specific clean()"""
+
         user = super(MiniUserSignUpForm, self).save(commit=False)
 
-        # apply app-specific settings
-        # MINIUSER_DEFAULT_ACTIVE
-        if not settings.MINIUSER_DEFAULT_ACTIVE:
-            user.is_active = False
+        # apply the user-object's constraints
+        user.clean()
 
         if commit:          # pragma: nocover
             user.save()     # pragma: nocover

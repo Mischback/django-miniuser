@@ -40,13 +40,6 @@ class MiniUserManager(BaseUserManager):
         # TODO: Is some sort of validation included?
         user.set_password(password)
 
-        # apply the app's activation mode
-        user.is_active = settings.MINIUSER_DEFAULT_ACTIVE
-
-        # deactivate user without usable passwords
-        if not user.has_usable_password():
-            user.is_active = False
-
         # last time cleaning
         user.clean()
 
@@ -66,6 +59,8 @@ class MiniUserManager(BaseUserManager):
         user.is_active = True
         user.is_superuser = True
         user.is_staff = True
+
+        # and now finally save the superuser
         user.save()
 
         return user
@@ -139,6 +134,13 @@ class MiniUser(AbstractUser):
         # ensure that an empty email will be stored as 'None'
         if self.email == '':
             self.email = None
+
+        # ensure to apply MINIUSER_DEFAULT_ACTIVE
+        self.is_active = settings.MINIUSER_DEFAULT_ACTIVE
+
+        # deactivate user without usable passwords
+        if not self.has_usable_password():
+            self.is_active = False
 
     def update_last_login(self):
         """Updates the timestamp of last login
