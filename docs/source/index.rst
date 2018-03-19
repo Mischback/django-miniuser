@@ -17,7 +17,7 @@ Notable Features
 * replaces Django's default user model
 * provides views for *login*, *logout*, *password reset* and *registration*
 * compatible with Python 2.7, 3.4, 3.5, 3.6
-* compatible with Django 1.10, 1.11, 2.0
+* compatible with Django 1.11, 2.0
 
 Contents
 --------
