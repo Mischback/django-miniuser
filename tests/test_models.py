@@ -188,3 +188,27 @@ class MiniUserModelTest(MiniuserTestCase):
         self.assertNotEqual(n.email, '')
         self.assertNotEqual(n.email, None)
         self.assertEqual(n.email, 'valid@localhost')
+
+    def test_activate_user(self):
+        """Inactive user object should be activated"""
+
+        m = MiniUser.objects.create(username='foo', is_active=False)
+        m.activate_user()
+        self.assertTrue(m.is_active)
+
+        # do nothing, if the user is already active
+        n = MiniUser.objects.create(username='bar', is_active=True)
+        n.activate_user()
+        self.assertTrue(n.is_active)
+
+    def test_deactivate_user(self):
+        """Active user objects should be deactivated"""
+
+        m = MiniUser.objects.create(username='foo', is_active=True)
+        m.deactivate_user()
+        self.assertFalse(m.is_active)
+
+        # do nothing, if the user is already deactivated
+        n = MiniUser.objects.create(username='bar', is_active=False)
+        n.deactivate_user()
+        self.assertFalse(n.is_active)

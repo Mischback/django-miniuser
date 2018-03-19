@@ -133,3 +133,17 @@ class MiniUser(AbstractUser):
         # deactivate user without usable passwords
         if not self.has_usable_password():
             self.is_active = False
+
+    def activate_user(self):
+        """Activates an account by setting 'is_active' = True"""
+
+        if not self.is_active:
+            self.is_active = True
+            self.save()
+
+    def deactivate_user(self):
+        """Deactivates an account by setting 'is_active' = False"""
+
+        if self.is_active:
+            self.is_active = False
+            self.save()
