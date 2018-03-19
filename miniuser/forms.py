@@ -37,7 +37,6 @@ class MiniUserSignUpForm(UserCreationForm):
 
         email = cleaned_data.get(self._meta.model.EMAIL_FIELD)
         if settings.MINIUSER_REQUIRE_VALID_EMAIL and not email:
-            # TODO: How to display this validation error?
             raise ValidationError(
                 _('A valid email address is required!'),
                 code='valid_email_required')

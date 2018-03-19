@@ -4,6 +4,7 @@
 
 {% block content %}
 {% if form.errors %}
+  {{ form.non_field_errors }}
 {% endif %}
 
 <div class="signup-form">
