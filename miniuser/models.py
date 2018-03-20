@@ -10,7 +10,9 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
-from .exceptions import MiniUserConfigurationException
+from .exceptions import (
+    MiniUserConfigurationException, MiniUserObjectActionException,
+)
 
 
 class MiniUserManager(BaseUserManager):
@@ -137,13 +139,29 @@ class MiniUser(AbstractUser):
     def activate_user(self):
         """Activates an account by setting 'is_active' = True"""
 
+        if settings.MINIUSER_REQUIRE_VALID_EMAIL and not self.email_is_verified:
+            raise MiniUserObjectActionException(
+                _(
+                    'You tried to activate an User-object, that has no '
+                    'verified email address, but your project requires the '
+                    'verification of email addresses.'
+                )
+            )
+
         if not self.is_active:
             self.is_active = True
+            # TODO: Can this be optimised? Check model's save()-method!
             self.save()
 
-    def deactivate_user(self):
+    def deactivate_user(self, request_user=None):
         """Deactivates an account by setting 'is_active' = False"""
+
+        # if this method is called from a view, ensure, that the requesting
+        # user can not deactivate himself.
+        if self == request_user:
+            raise MiniUserObjectActionException(_('You can not deactivate yourself.'))
 
         if self.is_active:
             self.is_active = False
+            # TODO: Can this be optimised? Check model's save()-method!
             self.save()

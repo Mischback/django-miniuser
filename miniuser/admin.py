@@ -6,12 +6,17 @@ admin backend."""
 
 # Django imports
 from django.conf import settings
+from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin.templatetags.admin_list import _boolean_icon
+from django.contrib.messages import ERROR, SUCCESS, WARNING
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
+from .exceptions import MiniUserObjectActionException
 from .models import MiniUser
 
 
@@ -71,6 +76,7 @@ class MiniUserAdmin(admin.ModelAdmin):
             'username_color_status',
             'email_with_status',
             'is_active',
+            'toggle_is_active',
             'last_login',
         )
         # if this statement is reached, inject this setting now at last!
@@ -98,7 +104,7 @@ class MiniUserAdmin(admin.ModelAdmin):
         setattr(settings, 'MINIUSER_ADMIN_SHOW_SEARCHBOX', False)  # pragma: nocover
 
     # admin actions (these will be accessible for bulk editing in list view)
-    actions = ['action_activate_user', 'action_deactivate_user']
+    actions = ['action_bulk_activate_user', 'action_bulk_deactivate_user']
 
     def get_actions(self, request):  # pragma: nocover
         """Override the default get_actions()-method to exclude delete objects
@@ -114,6 +120,39 @@ class MiniUserAdmin(admin.ModelAdmin):
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
+
+    def changelist_view(self, request, extra_context=None):
+        """Override changelist_view()-method to pass some more context to the view
+
+        This is used to:
+            - provide the legend (at the foot of the list view)"""
+
+        extra_context = extra_context or {}
+        extra_context['miniuser_legend'] = self.get_miniuser_legend()
+
+        return super(MiniUserAdmin, self).changelist_view(request, extra_context=extra_context)
+
+    def get_urls(self):
+        """Override get_urls()-method to include our custom admin actions and
+        make them accessible with a single button."""
+
+        urls = super(MiniUserAdmin, self).get_urls()
+
+        # TODO: Write tests for this override!
+        custom_urls = [
+            url(
+                r'^(?P<user_id>.+)/activate/$',
+                self.admin_site.admin_view(self.action_activate_user),
+                name='miniuser-activate-user'
+            ),
+            url(
+                r'^(?P<user_id>.+)/deactivate/$',
+                self.admin_site.admin_view(self.action_deactivate_user),
+                name='miniuser-deactivate-user'
+            ),
+        ]
+
+        return custom_urls + urls
 
     def status_aggregated(self, obj):
         """Returns the status of the user"""
@@ -165,29 +204,29 @@ class MiniUserAdmin(admin.ModelAdmin):
     email_with_status.short_description = _('EMail')
     email_with_status.admin_order_field = '-email'
 
-    def action_activate_user(self, request, queryset):
-        """Performs bulk activation of users in Django admin"""
+    def toggle_is_active(self, obj):
+        """Shows a button to activate or deactivate an account, depending on
+        'is_active'
 
-        updated = queryset.update(is_active=True)
+        TODO: Write tests for this method!"""
 
-        if updated == 1:
-            msg = _('1 user was activated successfully.')
+        if obj.is_active:
+            # show deactivate button
+            button = format_html(
+                '<a href="{}" class="button">deactivate</a>'.format(
+                    reverse('admin:miniuser-deactivate-user', args=[obj.pk])
+                )
+            )
         else:
-            msg = _('{} users were activated successfully.'.format(updated))
-        self.message_user(request, msg)
-    action_activate_user.short_description = _('Activate selected users')
+            # show activate button
+            button = format_html(
+                '<a href="{}" class="button">activate</a>'.format(
+                    reverse('admin:miniuser-activate-user', args=[obj.pk])
+                )
+            )
 
-    def action_deactivate_user(self, request, queryset):
-        """Performs bulk deactivation of users in Django admin"""
-
-        updated = queryset.update(is_active=False)
-
-        if updated == 1:
-            msg = _('1 user was deactivated successfully.')
-        else:
-            msg = _('{} users were deactivated successfully.'.format(updated))
-        self.message_user(request, msg)
-    action_deactivate_user.short_description = _('Deactivate selected users')
+        return button
+    toggle_is_active.short_description = _('Modify activation status')
 
     def get_miniuser_legend(self):
         """Returns relevant information from the app's settings to enhance the context"""
@@ -210,13 +249,104 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         return result
 
-    def changelist_view(self, request, extra_context=None):
-        """Override changelist_view()-method to pass some more context to the view
+    def action_bulk_activate_user(self, request, queryset):
+        """Performs bulk activation of users in Django admin
 
-        This is used to:
-            - provide the legend (at the foot of the list view)"""
+        This action is accessible from the drop-down menu and works together
+        with selecting user objects by checking their respective checkbox.
 
-        extra_context = extra_context or {}
-        extra_context['miniuser_legend'] = self.get_miniuser_legend()
+        TODO: Is it necessary to check REQUIRE_VALID_EMAIL? Currently it is
+            possible to activate accounts, even if they have no verified mail
+            and the app's settings do require them."""
 
-        return super(MiniUserAdmin, self).changelist_view(request, extra_context=extra_context)
+        updated = queryset.update(is_active=True)
+
+        if updated == 1:
+            msg = _('1 user was activated successfully.')
+        else:
+            msg = _('{} users were activated successfully.'.format(updated))
+        self.message_user(request, msg)
+    action_bulk_activate_user.short_description = _('Activate selected users')
+
+    def action_bulk_deactivate_user(self, request, queryset):
+        """Performs bulk deactivation of users in Django admin
+
+        This action is accessible from the drop-down menu and works together
+        with selecting user objects by checking their respective checkbox.
+
+        TODO: Ensure, that the admin CAN NOT deactivate himself!"""
+
+        updated = queryset.update(is_active=False)
+
+        if updated == 1:
+            msg = _('1 user was deactivated successfully.')
+        else:
+            msg = _('{} users were deactivated successfully.'.format(updated))
+        self.message_user(request, msg)
+    action_bulk_deactivate_user.short_description = _('Deactivate selected users')
+
+    def action_activate_user(self, request, user_id, *args, **kwargs):
+        """This action activates an user-object in Django admin
+
+        This action is accessible as a button per object row and will activate
+        only that single user.
+
+        TODO: Here, server state is modified by a GET-request. *fubar*"""
+
+        user = self.get_object(request, user_id)
+
+        # try to activate the user. Checking of constraints will happen in
+        # the model-class.
+        try:
+            user.activate_user()
+            self.message_user(
+                request,
+                _('User {} was successfully activated.'.format(user.username)),
+                SUCCESS,
+            )
+        except AttributeError:
+            self.message_user(
+                request,
+                _('No User object with the given id ({}) found!'.format(user_id)),
+                ERROR,
+            )
+        except MiniUserObjectActionException:
+            self.message_user(
+                request,
+                _('User {} could not be activated, because his email address is not verified!'.format(user.username)),
+                ERROR,
+            )
+        return redirect(reverse('admin:miniuser_miniuser_changelist'))
+
+    def action_deactivate_user(self, request, user_id, *args, **kwargs):
+        """This action deactivates an user-object in Django admin
+
+        This action is accessible as a button per object row and will deactivate
+        only that single user.
+
+        TODO: Here, server state is modified by a GET-request. *fubar*"""
+
+        user = self.get_object(request, user_id)
+
+        # try to deactivate the user. Checking of constraints will happen in
+        # the model-class.
+        try:
+            user.deactivate_user(request_user=request.user)
+            self.message_user(
+                request,
+                _('User {} was successfully deactivated.'.format(user.username)),
+                SUCCESS,
+            )
+        except AttributeError:
+            self.message_user(
+                request,
+                _('No User object with the given id ({}) found!'.format(user_id)),
+                ERROR,
+            )
+        except MiniUserObjectActionException:
+            self.message_user(
+                request,
+                _('You may not deactivate your own account!'),
+                WARNING,
+            )
+        return redirect(reverse('admin:miniuser_miniuser_changelist'))
