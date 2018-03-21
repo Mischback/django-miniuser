@@ -16,7 +16,7 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
-from .exceptions import MiniUserObjectActionException
+from .exceptions import MiniUserException, MiniUserObjectActionException
 from .models import MiniUser
 
 
@@ -249,40 +249,155 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         return result
 
-    def action_bulk_activate_user(self, request, queryset):
+    def action_bulk_activate_user(self, request, queryset, user_id=None):
         """Performs bulk activation of users in Django admin
 
         This action is accessible from the drop-down menu and works together
         with selecting user objects by checking their respective checkbox.
+        Furthermore, it handles the actual activation of single user aswell,
+        because ultimatively, this method is used to perform the activation
+        when 'action_activate_user()' is called."""
 
-        TODO: Is it necessary to check REQUIRE_VALID_EMAIL? Currently it is
-            possible to activate accounts, even if they have no verified mail
-            and the app's settings do require them."""
+        activated = []
+        not_activated = []
+        not_found = []
 
-        updated = queryset.update(is_active=True)
+        # the method is called from 'action_activate_user', so a queryset has
+        #   to be constructed...
+        if user_id and not queryset:
+            queryset = [MiniUser.objects.get(pk=user_id)]
 
-        if updated == 1:
-            msg = _('1 user was activated successfully.')
-        else:
-            msg = _('{} users were activated successfully.'.format(updated))
-        self.message_user(request, msg)
+        # at this point, 'queryset' is filled and can be iterated
+        for user in queryset:
+            try:
+                user.activate_user()
+                activated.append(user.username)
+            except AttributeError:
+                not_found.append(user.id)
+            except MiniUserObjectActionException:
+                not_activated.append(user.username)
+
+        # return messages for successfully activated accounts
+        if len(activated) == 1:
+            self.message_user(
+                request,
+                _('The user {} was activated successfully.'.format(activated[0])),
+                SUCCESS,
+            )
+        elif len(activated) > 1:
+            self.message_user(
+                request,
+                _('{} users were activated successfully ({}).'.format(len(activated), ', '.join(activated))),
+                SUCCESS,
+            )
+
+        # return messages for accounts, that could not be activated, because
+        #   their mail address is not verified
+        if len(not_activated) == 1:
+            self.message_user(
+                request,
+                _('The user {} could not be activated, because his email address is not verified!'.format(
+                    not_activated[0]
+                )
+                ),
+                ERROR,
+            )
+        elif len(not_activated) > 1:
+            self.message_user(
+                request,
+                _('{} users could not be activated, because their email addresses are not verified ({})!'.format(
+                    len(not_activated),
+                    ', '.join(not_activated)
+                )
+                ),
+                ERROR,
+            )
+
+        # return messages for invalid user ids
+        if len(not_found) == 1:
+            self.message_user(
+                request,
+                _('No User object with the given ID ({}) found!'.format(not_found[0])),
+                ERROR,
+            )
+        elif len(not_found) > 1:
+            self.message_user(
+                request,
+                _('No User objects with the given IDs found ({})!'.format(', '.join(not_found))),
+                ERROR,
+            )
     action_bulk_activate_user.short_description = _('Activate selected users')
 
-    def action_bulk_deactivate_user(self, request, queryset):
+    def action_bulk_deactivate_user(self, request, queryset, user_id=None):
         """Performs bulk deactivation of users in Django admin
 
         This action is accessible from the drop-down menu and works together
         with selecting user objects by checking their respective checkbox.
+        Furthermore, it handles the actual activation of single user aswell,
+        because ultimatively, this method is used to perform the activation
+        when 'action_activate_user()' is called."""
 
-        TODO: Ensure, that the admin CAN NOT deactivate himself!"""
+        deactivated = []
+        not_deactivated = []
+        not_found = []
 
-        updated = queryset.update(is_active=False)
+        # the method is called from 'action_activate_user', so a queryset has
+        #   to be constructed...
+        if user_id and not queryset:
+            queryset = [MiniUser.objects.get(pk=user_id)]
 
-        if updated == 1:
-            msg = _('1 user was deactivated successfully.')
-        else:
-            msg = _('{} users were deactivated successfully.'.format(updated))
-        self.message_user(request, msg)
+        # at this point, 'queryset' is filled and can be iterated
+        for user in queryset:
+            try:
+                user.deactivate_user()
+                deactivated.append(user.username)
+            except AttributeError:
+                not_found.append(user.id)
+            except MiniUserObjectActionException:
+                not_deactivated.append(user.username)
+
+        # return messages for successfully deactivated accounts
+        if len(deactivated) == 1:
+            self.message_user(
+                request,
+                _('The user {} was deactivated successfully.'.format(deactivated[0])),
+                SUCCESS,
+            )
+        elif len(deactivated) > 1:
+            self.message_user(
+                request,
+                _('{} users were deactivated successfully ({}).'.format(len(deactivated), ', '.join(deactivated))),
+                SUCCESS,
+            )
+
+        # return messages for accounts, that could not be deactivated, because
+        #   they tried to deactivate their own account
+        if len(not_deactivated) == 1:
+            self.message_user(
+                request,
+                _('The user {} could not be deactivated, because this is your own account!'.format(
+                    not_deactivated[0]
+                )
+                ),
+                ERROR,
+            )
+        elif len(not_deactivated) > 1:
+            # if this point is reached, some major fuckup happens!
+            raise MiniUserException('This point should not be reachable!')
+
+        # return messages for invalid user ids
+        if len(not_found) == 1:
+            self.message_user(
+                request,
+                _('No User object with the given ID ({}) found!'.format(not_found[0])),
+                ERROR,
+            )
+        elif len(not_found) > 1:
+            self.message_user(
+                request,
+                _('No User objects with the given IDs found ({})!'.format(', '.join(not_found))),
+                ERROR,
+            )
     action_bulk_deactivate_user.short_description = _('Deactivate selected users')
 
     def action_activate_user(self, request, user_id, *args, **kwargs):
@@ -293,29 +408,8 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         TODO: Here, server state is modified by a GET-request. *fubar*"""
 
-        user = self.get_object(request, user_id)
+        self.action_bulk_activate_user(request, None, user_id=user_id)
 
-        # try to activate the user. Checking of constraints will happen in
-        # the model-class.
-        try:
-            user.activate_user()
-            self.message_user(
-                request,
-                _('User {} was successfully activated.'.format(user.username)),
-                SUCCESS,
-            )
-        except AttributeError:
-            self.message_user(
-                request,
-                _('No User object with the given id ({}) found!'.format(user_id)),
-                ERROR,
-            )
-        except MiniUserObjectActionException:
-            self.message_user(
-                request,
-                _('User {} could not be activated, because his email address is not verified!'.format(user.username)),
-                ERROR,
-            )
         return redirect(reverse('admin:miniuser_miniuser_changelist'))
 
     def action_deactivate_user(self, request, user_id, *args, **kwargs):
@@ -326,27 +420,6 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         TODO: Here, server state is modified by a GET-request. *fubar*"""
 
-        user = self.get_object(request, user_id)
+        self.action_bulk_deactivate_user(request, None, user_id=user_id)
 
-        # try to deactivate the user. Checking of constraints will happen in
-        # the model-class.
-        try:
-            user.deactivate_user(request_user=request.user)
-            self.message_user(
-                request,
-                _('User {} was successfully deactivated.'.format(user.username)),
-                SUCCESS,
-            )
-        except AttributeError:
-            self.message_user(
-                request,
-                _('No User object with the given id ({}) found!'.format(user_id)),
-                ERROR,
-            )
-        except MiniUserObjectActionException:
-            self.message_user(
-                request,
-                _('You may not deactivate your own account!'),
-                WARNING,
-            )
         return redirect(reverse('admin:miniuser_miniuser_changelist'))
