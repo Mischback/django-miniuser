@@ -265,7 +265,11 @@ class MiniUserAdmin(admin.ModelAdmin):
         # the method is called from 'action_activate_user', so a queryset has
         #   to be constructed...
         if user_id and not queryset:
-            queryset = [MiniUser.objects.get(pk=user_id)]
+            try:
+                queryset = [MiniUser.objects.get(pk=user_id)]
+            except MiniUser.DoesNotExist:
+                queryset = [None]
+                not_found.append(user_id)
 
         # at this point, 'queryset' is filled and can be iterated
         for user in queryset:
@@ -273,7 +277,9 @@ class MiniUserAdmin(admin.ModelAdmin):
                 user.activate_user()
                 activated.append(user.username)
             except AttributeError:
-                not_found.append(user.id)
+                # this may be reached, if a non existent user ID is passed
+                # TODO: Should this be mentioned in a message?
+                pass
             except MiniUserObjectActionException:
                 not_activated.append(user.username)
 
@@ -344,15 +350,21 @@ class MiniUserAdmin(admin.ModelAdmin):
         # the method is called from 'action_activate_user', so a queryset has
         #   to be constructed...
         if user_id and not queryset:
-            queryset = [MiniUser.objects.get(pk=user_id)]
+            try:
+                queryset = [MiniUser.objects.get(pk=user_id)]
+            except MiniUser.DoesNotExist:
+                queryset = [None]
+                not_found.append(user_id)
 
         # at this point, 'queryset' is filled and can be iterated
         for user in queryset:
             try:
-                user.deactivate_user()
+                user.deactivate_user(request_user=request.user)
                 deactivated.append(user.username)
             except AttributeError:
-                not_found.append(user.id)
+                # this may be reached, if a non existent user ID is passed
+                # TODO: Should this be mentioned in a message?
+                pass
             except MiniUserObjectActionException:
                 not_deactivated.append(user.username)
 
@@ -379,11 +391,11 @@ class MiniUserAdmin(admin.ModelAdmin):
                     not_deactivated[0]
                 )
                 ),
-                ERROR,
+                WARNING,
             )
-        elif len(not_deactivated) > 1:
+        elif len(not_deactivated) > 1:                                      # pragma: nocover
             # if this point is reached, some major fuckup happens!
-            raise MiniUserException('This point should not be reachable!')
+            raise MiniUserException('This point should not be reachable!')  # pragma: nocover
 
         # return messages for invalid user ids
         if len(not_found) == 1:
