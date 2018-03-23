@@ -53,6 +53,22 @@ class MiniUserSignUpForm(UserCreationForm):
 
         if commit:          # pragma: nocover
             user.save()     # pragma: nocover
+
+        if settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
+            # superusers will be informed of this new registration!
+            if settings.MINIUSER_REQUIRE_VALID_EMAIL:
+                # the new account will be activated automatically, following the process... (TODO)
+                # the admin will only need an information mail
+                pass
+            elif settings.MINIUSER_DEFAULT_ACTIVE:
+                # the new account is automatically activated
+                # the admin will only need an information mail
+                pass
+            elif not settings.MINIUSER_DEFAULT_ACTIVE:
+                # the new accoutn will not be activated automatically!!!
+                # shall we send an email to the admins? Or notify with another method?
+                pass
+
         return user         # pragma: nocover
 
     class Meta:

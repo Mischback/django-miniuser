@@ -100,11 +100,23 @@ E010 = Error(
 )
 
 E011 = Error(
-    _("AUTH_USER_MODEL has to be 'miniuser.MiniUser'"),
+    _("AUTH_USER_MODEL has to be 'miniuser.MiniUser.'"),
     hint=_(
         "Please check your settings and ensure, that you pointed the "
         "AUTH_USER_MODEL to django-miniuser's MiniUser-class."),
     id='miniuser.e011',
+)
+
+E012 = Error(
+    _("Value of MINIUSER_ADMIN_SIGNUP_NOTIFICATION is not valid."),
+    hint=_(
+        "Please check your settings and ensure, that the setting is set to a "
+        "boolean 'False' or follown the specification of "
+        "{'username': NOTIFICATION_METHODS,}, where 'username' is a valid "
+        "superuser username and NOTIFICATION_METHODS is a list or tuple of "
+        "supported methods (currently: 'mail')."
+    ),
+    id='miniuser.e012',
 )
 
 I001 = Info(
@@ -179,6 +191,30 @@ def check_correct_values(app_configs, **kwargs):
     if not settings.AUTH_USER_MODEL == 'miniuser.MiniUser':
         errors.append(E011)
 
+    # E012 needs a little more effort, because the structure and the values
+    #   inside of the structure need attention
+    # the 'e12' controls, if the error has to be raised; this is not like the
+    #    most elegant way, but it works...
+    e12 = False
+    if (
+        isinstance(settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION, bool) and
+        settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION is True
+    ):
+        e12 = True
+    else:
+        try:
+            for username in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
+                for method in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[username]:
+                    # this is the place to list available methods of notification
+                    if method not in ('mail'):
+                        e12 = True
+                        break
+        except TypeError:
+            e12 = True
+    # append 'E012' if any error was found
+    if e12:
+        errors.append(E012)
+
     return errors
 
 
@@ -252,6 +288,10 @@ class MiniUserConfig(AppConfig):
         set_app_default_setting('MINIUSER_ADMIN_STATUS_CHAR_STAFF', '$')
         """Specifies the character that indicates a user with staff-status.
         Has to be a single character!"""
+
+        set_app_default_setting('MINIUSER_ADMIN_SIGNUP_NOTIFICATION', False)
+        """Will an email be send to all superusers, when somebody registers a
+        new account?"""
 
         set_app_default_setting('AUTH_USER_MODEL', 'miniuser.MiniUser')
         """Sets the app's MiniUser class as Django's AUTH_USER_MODEL.

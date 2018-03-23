@@ -82,3 +82,12 @@ STATIC_URL = '/static/'
 
 # this is a minimum test requirement
 SECRET_KEY = 'only-for-testing'
+
+
+# currently relevant for development!
+# SEE #8802dd1!
+
+MINIUSER_DEFAULT_ACTIVE = False
+MINIUSER_ADMIN_SIGNUP_NOTIFICATION = {
+    'django': ['mail'],
+}
