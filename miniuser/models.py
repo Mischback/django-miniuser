@@ -11,7 +11,8 @@ from django.utils.translation import ugettext_lazy as _
 
 # app imports
 from .exceptions import (
-    MiniUserConfigurationException, MiniUserObjectActionException,
+    MiniUserActivateWithoutVerifiedEmailException,
+    MiniUserConfigurationException, MiniUserDeactivateOwnAccountException,
 )
 
 
@@ -140,7 +141,7 @@ class MiniUser(AbstractUser):
         """Activates an account by setting 'is_active' = True"""
 
         if settings.MINIUSER_REQUIRE_VALID_EMAIL and not self.email_is_verified:
-            raise MiniUserObjectActionException(
+            raise MiniUserActivateWithoutVerifiedEmailException(
                 _(
                     'You tried to activate an User-object, that has no '
                     'verified email address, but your project requires the '
@@ -159,7 +160,7 @@ class MiniUser(AbstractUser):
         # if this method is called from a view, ensure, that the requesting
         # user can not deactivate himself.
         if self == request_user:
-            raise MiniUserObjectActionException(_('You can not deactivate yourself.'))
+            raise MiniUserDeactivateOwnAccountException(_('You can not deactivate yourself.'))
 
         if self.is_active:
             self.is_active = False

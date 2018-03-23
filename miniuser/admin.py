@@ -16,7 +16,10 @@ from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
-from .exceptions import MiniUserException, MiniUserObjectActionException
+from .exceptions import (
+    MiniUserActivateWithoutVerifiedEmailException,
+    MiniUserDeactivateOwnAccountException, MiniUserException,
+)
 from .models import MiniUser
 
 
@@ -280,7 +283,7 @@ class MiniUserAdmin(admin.ModelAdmin):
                 # this may be reached, if a non existent user ID is passed
                 # TODO: Should this be mentioned in a message?
                 pass
-            except MiniUserObjectActionException:
+            except MiniUserActivateWithoutVerifiedEmailException:
                 not_activated.append(user.username)
 
         # return messages for successfully activated accounts
@@ -365,7 +368,7 @@ class MiniUserAdmin(admin.ModelAdmin):
                 # this may be reached, if a non existent user ID is passed
                 # TODO: Should this be mentioned in a message?
                 pass
-            except MiniUserObjectActionException:
+            except MiniUserDeactivateOwnAccountException:
                 not_deactivated.append(user.username)
 
         # return messages for successfully deactivated accounts

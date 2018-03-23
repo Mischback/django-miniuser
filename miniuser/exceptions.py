@@ -15,3 +15,14 @@ class MiniUserConfigurationException(MiniUserException):
 class MiniUserObjectActionException(MiniUserException):
     """Raised, if an exception must be raised during custom actions."""
     pass
+
+
+class MiniUserActivateWithoutVerifiedEmailException(MiniUserObjectActionException):
+    """Raised, if an account should be activated, that has no verified email
+    address, while MINIUSER_REQUIRE_VALID_EMAIL = True"""
+    pass
+
+
+class MiniUserDeactivateOwnAccountException(MiniUserObjectActionException):
+    """Raised, if a superuser tries to deactivate his own account"""
+    pass
