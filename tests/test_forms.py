@@ -12,6 +12,7 @@ from django.test import override_settings, tag
 
 # app imports
 from miniuser.forms import MiniUserSignUpForm
+from miniuser.models import MiniUser
 
 # app imports
 from .utils.testcases import MiniuserTestCase
@@ -20,6 +21,14 @@ from .utils.testcases import MiniuserTestCase
 @tag('forms')
 class MiniUserSignUpFormTest(MiniuserTestCase):
     """Tests targeting the SignUpForm"""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = MiniUser.objects.create_superuser(
+            username='django',
+            password='django',
+            email='django@localhost'
+        )
 
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
     def test_exclude_email_field(self):
@@ -38,7 +47,8 @@ class MiniUserSignUpFormTest(MiniuserTestCase):
     @tag('settings')
     @override_settings(
         MINIUSER_DEFAULT_ACTIVE=False,
-        MINIUSER_REQUIRE_VALID_EMAIL=False
+        MINIUSER_REQUIRE_VALID_EMAIL=False,
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION=False,
     )
     def test_respect_default_inactive(self):
         """Respect the app's setting of DEFAULT_ACTIVE = False"""
@@ -56,7 +66,8 @@ class MiniUserSignUpFormTest(MiniuserTestCase):
     @tag('settings')
     @override_settings(
         MINIUSER_DEFAULT_ACTIVE=True,
-        MINIUSER_REQUIRE_VALID_EMAIL=False
+        MINIUSER_REQUIRE_VALID_EMAIL=False,
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION=False,
     )
     def test_respect_default_active(self):
         """Do accounts get created as active?"""
@@ -74,7 +85,7 @@ class MiniUserSignUpFormTest(MiniuserTestCase):
     @tag('settings')
     @override_settings(
         MINIUSER_DEFAULT_ACTIVE=False,
-        MINIUSER_REQUIRE_VALID_EMAIL=True
+        MINIUSER_REQUIRE_VALID_EMAIL=True,
     )
     def test_validation_email_required(self):
         """Form validation ensures, that an email address is provided"""
