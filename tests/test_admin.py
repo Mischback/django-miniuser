@@ -462,7 +462,6 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         """Don't deactivate invalid users"""
         pass
 
-    @tag('current')
     def test_action_deactivate_user(self):
         """Deactivate a single user by button (pass to bulk method)"""
 
@@ -481,7 +480,6 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         messages = list(response.wsgi_request._messages)
         self.assertEqual(str(messages[0]), 'No User object with the given ID ({}) found!'.format(999))
 
-    @tag('current')
     def test_action_deactivate_own_account(self):
 
         response = self.client.get(reverse('admin:miniuser-deactivate-user', args=[self.superuser.pk]))

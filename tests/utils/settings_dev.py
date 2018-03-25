@@ -91,6 +91,9 @@ MINIUSER_DEFAULT_ACTIVE = False
 MINIUSER_ADMIN_SIGNUP_NOTIFICATION = {
     'django': ['mail'],
 }
+ADMINS = (
+    ('django', 'django@localhost'),
+)
 
 # just for development. Doesn't work for tests (locmem?)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

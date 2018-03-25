@@ -203,7 +203,12 @@ def check_correct_values(app_configs, **kwargs):
         e12 = True
     else:
         try:
+            # TODO: Use ADMINS or MANAGERS?
+            admins = [x[0] for x in settings.ADMINS]
             for username in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
+                if username not in admins:
+                    e12 = True
+                    break
                 for method in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[username]:
                     # this is the place to list available methods of notification
                     if method not in ('mail'):

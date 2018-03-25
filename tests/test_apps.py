@@ -144,14 +144,29 @@ class MiniUserConfigTest(MiniuserTestCase):
         self.assertEqual(errors, [E012])
 
     @tag('checks')
-    @override_settings(MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'foo': 'foo'})
+    @override_settings(
+        ADMINS=(('django', 'django@localhost'),),
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION=('foo', 'foo'),
+    )
     def test_check_e012_3(self):
         errors = check_correct_values(None)
         self.assertEqual(errors, [E012])
 
     @tag('checks')
-    @override_settings(MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'foo': ('foo', 'foo')})
+    @override_settings(
+        ADMINS=(('django', 'django@localhost'), ('foo', 'foo@localhost')),
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION=('foo', 'foo'),
+    )
     def test_check_e012_4(self):
+        errors = check_correct_values(None)
+        self.assertEqual(errors, [E012])
+
+    @tag('checks')
+    @override_settings(
+        ADMINS=(('django', 'django@localhost'), ('foo', 'foo@localhost')),
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'foo': ['foo'], },
+    )
+    def test_check_e012_5(self):
         errors = check_correct_values(None)
         self.assertEqual(errors, [E012])
 
