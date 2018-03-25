@@ -55,6 +55,7 @@ class MiniUserSignUpForm(UserCreationForm):
         if commit:          # pragma: nocover
             user.save()     # pragma: nocover
 
+        # Handle notifications in case of new signups
         if settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
             # superusers will be informed of this new registration!
             admin_mail_to = []
@@ -71,6 +72,11 @@ class MiniUserSignUpForm(UserCreationForm):
 
             # find all the admins, that want to receive a mail on signup
             # (heavily) relies on Django's ADMINS setting
+            # TODO: In fact, this should not rely on ADMINS. In fact, these should
+            #   be all 'superusers' and that may be bad for large projects aswell.
+            #   Better would be, to dynamically detect, who is able to activate
+            #   accounts or is responsible for this 'user management'.
+            #   Database hits should be circumvented at any cost!
             for admin in settings.ADMINS:
                 try:
                     if 'mail' in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[admin[0]]:

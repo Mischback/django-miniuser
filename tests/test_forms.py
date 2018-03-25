@@ -209,7 +209,7 @@ class MiniUserSignUpFormTest(MiniuserTestCase):
                 'password2': 'foo'
             }
         )
-        u = form.save()
+        u = form.save()  # noqa
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('django@localhost', mail.outbox[0].to)
         self.assertIn('bar@localhost', mail.outbox[0].to)
