@@ -56,30 +56,27 @@ class MiniUserSignUpForm(UserCreationForm):
             user.save()     # pragma: nocover
 
         if settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
-            # TODO: Write tests targeting this bunch of code!
             # superusers will be informed of this new registration!
             admin_mail_to = []
             admin_mail_subject = '[django-project] New User Signup'
-            if settings.MINIUSER_REQUIRE_VALID_EMAIL or settings.MINIUSER_DEFAULT_ACTIVE:
+            if (not settings.MINIUSER_DEFAULT_ACTIVE and not settings.MINIUSER_REQUIRE_VALID_EMAIL):
+                # the new account will not be activated automatically!!!
+                # TODO: Prepare a real mail body!
+                admin_mail_text = 'Interaction Required: You have to activate an account!'
+            else:
                 # the new account will be activated automatically, following the process... (TODO)
-                # the admin will only need an information mail
-                admin_mail_text = 'foo'
-            elif not settings.MINIUSER_DEFAULT_ACTIVE:
-                # the new accoutn will not be activated automatically!!!
-                # shall we send an email to the admins? Or notify with another method?
-                admin_mail_text = 'bar'
+                #   or is active by default.
+                # TODO: Prepare a real mail body!
+                admin_mail_text = 'Notification Mail; nothing to do!'
 
             # find all the admins, that want to receive a mail on signup
-            # TODO: THIS IS REALLY BAD! For creating a user, several hits on the database are needed to grab the
-            #   admin's email addresses. This is just a big fuck up!
-            #   The validity of admin-addresses can't be handled in app-specific checks, because these checks are
-            #   executed before the models are accessible, but this would be the place to do so.
-            #   Probably it would be best to rely on Django's ADMINS-setting. We will shift the responsibility to the
-            #   admin of the project. In fact, he would be the one to fill our own setting aswell.
-            for username in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
-                tmp = MiniUser.objects.get(username=username)
-                if 'mail' in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[username]:
-                    admin_mail_to.append(tmp.email)
+            # (heavily) relies on Django's ADMINS setting
+            for admin in settings.ADMINS:
+                try:
+                    if 'mail' in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[admin[0]]:
+                        admin_mail_to.append(admin[1])
+                except KeyError:
+                    pass
 
             # send the admins
             if admin_mail_to:

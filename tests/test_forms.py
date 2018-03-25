@@ -7,6 +7,7 @@ These tests target the code in miniuser/forms.py."""
 from unittest import skip  # noqa
 
 # Django imports
+from django.core import mail
 from django.forms import ValidationError
 from django.test import override_settings, tag
 
@@ -120,3 +121,95 @@ class MiniUserSignUpFormTest(MiniuserTestCase):
             }
         )
         self.assertTrue(form.is_valid())
+
+    @tag('settings', 'current')
+    @override_settings(
+        MINIUSER_DEFAULT_ACTIVE=False,
+        MINIUSER_REQUIRE_VALID_EMAIL=False,
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'django': ['mail'], },
+        ADMINS=(('django', 'django@localhost'), )
+    )
+    def test_send_activation_request(self):
+        """Is a notification mail send to the admin?"""
+
+        form = MiniUserSignUpForm(
+            data={
+                'username': 'foo',
+                'password1': 'foo',
+                'password2': 'foo'
+            }
+        )
+        u = form.save()
+        self.assertFalse(u.is_active)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '[django-project] New User Signup')
+        self.assertEqual(mail.outbox[0].body, 'Interaction Required: You have to activate an account!')
+
+    @tag('settings', 'current')
+    @override_settings(
+        MINIUSER_DEFAULT_ACTIVE=True,
+        MINIUSER_REQUIRE_VALID_EMAIL=False,
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'django': ['mail'], },
+        ADMINS=(('django', 'django@localhost'), )
+    )
+    def test_send_notification_auto_active(self):
+        """Is a notification mail send to the admin?"""
+
+        form = MiniUserSignUpForm(
+            data={
+                'username': 'foo',
+                'password1': 'foo',
+                'password2': 'foo'
+            }
+        )
+        u = form.save()
+        self.assertTrue(u.is_active)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '[django-project] New User Signup')
+        self.assertEqual(mail.outbox[0].body, 'Notification Mail; nothing to do!')
+
+    @tag('settings', 'current')
+    @override_settings(
+        MINIUSER_DEFAULT_ACTIVE=False,
+        MINIUSER_REQUIRE_VALID_EMAIL=True,
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'django': ['mail'], },
+        ADMINS=(('django', 'django@localhost'), )
+    )
+    def test_send_notification_email_verification_will_activate(self):
+        """Is a notification mail send to the admin?"""
+
+        form = MiniUserSignUpForm(
+            data={
+                'username': 'foo',
+                'password1': 'foo',
+                'password2': 'foo',
+                'email': 'foo@localhost',
+            }
+        )
+        u = form.save()
+        self.assertFalse(u.is_active)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, '[django-project] New User Signup')
+        self.assertEqual(mail.outbox[0].body, 'Notification Mail; nothing to do!')
+
+    @tag('settings', 'current')
+    @override_settings(
+        MINIUSER_DEFAULT_ACTIVE=False,
+        MINIUSER_REQUIRE_VALID_EMAIL=False,
+        MINIUSER_ADMIN_SIGNUP_NOTIFICATION={'django': ['mail'], 'bar': ['mail', ]},
+        ADMINS=(('django', 'django@localhost'), ('foo', 'foo@localhost'), ('bar', 'bar@localhost')),
+    )
+    def test_send_activation_request_find_admin_to(self):
+        """Is a notification mail send to the admin?"""
+
+        form = MiniUserSignUpForm(
+            data={
+                'username': 'foo',
+                'password1': 'foo',
+                'password2': 'foo'
+            }
+        )
+        u = form.save()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('django@localhost', mail.outbox[0].to)
+        self.assertIn('bar@localhost', mail.outbox[0].to)
