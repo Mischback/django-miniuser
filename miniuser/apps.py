@@ -12,6 +12,8 @@ import re
 from django.apps import AppConfig
 from django.conf import settings
 from django.core.checks import Error, Info, Warning, register
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.utils.translation import ugettext_lazy as _
 
 MESSAGE_BOOL = "Value of {} has to be a boolean value."
@@ -202,20 +204,17 @@ def check_correct_values(app_configs, **kwargs):
     ):
         e12 = True
     else:
-        try:
-            # TODO: Use ADMINS or MANAGERS?
-            admins = [x[0] for x in settings.ADMINS]
-            for username in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
-                if username not in admins:
+        for tup in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
+            try:
+                validate_email(tup[1])
+            except (IndexError, ValidationError):
+                e12 = True
+                break
+            for method in tup[2]:
+                # this is the place to list available methods of notification
+                if method not in ('mail'):
                     e12 = True
                     break
-                for method in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[username]:
-                    # this is the place to list available methods of notification
-                    if method not in ('mail'):
-                        e12 = True
-                        break
-        except TypeError:
-            e12 = True
     # append 'E012' if any error was found
     if e12:
         errors.append(E012)

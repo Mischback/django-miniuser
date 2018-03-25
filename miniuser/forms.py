@@ -71,18 +71,7 @@ class MiniUserSignUpForm(UserCreationForm):
                 admin_mail_text = 'Notification Mail; nothing to do!'
 
             # find all the admins, that want to receive a mail on signup
-            # (heavily) relies on Django's ADMINS setting
-            # TODO: In fact, this should not rely on ADMINS. In fact, these should
-            #   be all 'superusers' and that may be bad for large projects aswell.
-            #   Better would be, to dynamically detect, who is able to activate
-            #   accounts or is responsible for this 'user management'.
-            #   Database hits should be circumvented at any cost!
-            for admin in settings.ADMINS:
-                try:
-                    if 'mail' in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION[admin[0]]:
-                        admin_mail_to.append(admin[1])
-                except KeyError:
-                    pass
+            admin_mail_to = [x[1] for x in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION if 'mail' in x[2]]
 
             # send the admins
             if admin_mail_to:

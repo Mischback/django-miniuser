@@ -88,11 +88,8 @@ SECRET_KEY = 'only-for-testing'
 # SEE #8802dd1!
 
 MINIUSER_DEFAULT_ACTIVE = False
-MINIUSER_ADMIN_SIGNUP_NOTIFICATION = {
-    'django': ['mail'],
-}
-ADMINS = (
-    ('django', 'django@localhost'),
+MINIUSER_ADMIN_SIGNUP_NOTIFICATION = (
+    ('django', 'django@localhost', ('mail', )),
 )
 
 # just for development. Doesn't work for tests (locmem?)
