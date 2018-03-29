@@ -52,6 +52,9 @@ class MiniUserSignUpForm(UserCreationForm):
         # apply the user-object's constraints
         user.clean()
 
+        # ensure to apply MINIUSER_DEFAULT_ACTIVE
+        user.is_active = settings.MINIUSER_DEFAULT_ACTIVE
+
         if commit:          # pragma: nocover
             user.save()     # pragma: nocover
 

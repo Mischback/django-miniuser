@@ -38,6 +38,9 @@ class MiniUserManager(BaseUserManager):
             **extra_fields
         )
 
+        # apply MINIUSER_DEFAULT_ACTIVE
+        user.is_active = settings.MINIUSER_DEFAULT_ACTIVE
+
         # set the password
         # TODO: Is some sort of validation included?
         user.set_password(password)
@@ -129,9 +132,6 @@ class MiniUser(AbstractUser):
         # ensure that an empty email will be stored as 'None'
         if self.email == '':
             self.email = None
-
-        # ensure to apply MINIUSER_DEFAULT_ACTIVE
-        self.is_active = settings.MINIUSER_DEFAULT_ACTIVE
 
         # deactivate user without usable passwords
         if not self.has_usable_password():
