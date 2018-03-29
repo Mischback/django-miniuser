@@ -146,6 +146,14 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
 
         self.assertEqual(ma.email_with_status(u), '{} {}'.format(_boolean_icon(u.email_is_verified), u.email))
 
+    def test_activation_status_with_action(self):
+        """Combines the activation status with the appropriate action"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+        u = MiniUser.objects.create(username='user', is_active=False)
+
+        self.assertEqual(ma.activation_status_with_action(u), '{} {}'.format(_boolean_icon(u.is_active), ma.toggle_is_active(u)))
+
     @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_LIST_DISPLAY=['username_color_status'],

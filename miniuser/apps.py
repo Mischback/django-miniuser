@@ -91,7 +91,8 @@ E009 = Error(
         "'username_character_status', 'username', 'email', 'first_name', "
         "'last_name', 'status_aggregated', 'is_active', 'is_staff', "
         "'is_superuser', 'email_is_verified', 'last_login', 'date_joined' "
-        "'email_with_status' and 'toggle_is_active'."),
+        "'email_with_status', 'toggle_is_active' and "
+        "'activation_status_with_action'."),
     id='miniuser.e009',
 )
 
@@ -182,6 +183,7 @@ def check_correct_values(app_configs, **kwargs):
                 'date_joined',
                 'email_with_status',
                 'toggle_is_active',
+                'activation_status_with_action',
             ):
                 errors.append(E009)
                 break

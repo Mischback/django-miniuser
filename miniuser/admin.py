@@ -78,8 +78,7 @@ class MiniUserAdmin(admin.ModelAdmin):
         list_display = (
             'username_color_status',
             'email_with_status',
-            'is_active',
-            'toggle_is_active',
+            'activation_status_with_action',
             'last_login',
         )
         # if this statement is reached, inject this setting now at last!
@@ -206,6 +205,15 @@ class MiniUserAdmin(admin.ModelAdmin):
         return format_html('{} {}', icon, obj.email)
     email_with_status.short_description = _('EMail')
     email_with_status.admin_order_field = '-email'
+
+    def activation_status_with_action(self, obj):
+        """Combines the activation status with the buttons to modify it"""
+
+        # get the icon (with Django's template tag)
+        icon = _boolean_icon(obj.is_active)
+
+        return format_html('{} {}', icon, self.toggle_is_active(obj))
+    activation_status_with_action.short_description = _('Activation Status')
 
     def toggle_is_active(self, obj):
         """Shows a button to activate or deactivate an account, depending on
