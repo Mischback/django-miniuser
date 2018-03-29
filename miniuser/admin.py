@@ -271,7 +271,6 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         activated = []
         not_activated = []
-        not_found = []
 
         # the method is called from 'action_activate_user', so a queryset has
         #   to be constructed...
@@ -279,18 +278,15 @@ class MiniUserAdmin(admin.ModelAdmin):
             try:
                 queryset = [MiniUser.objects.get(pk=user_id)]
             except MiniUser.DoesNotExist:
-                queryset = [None]
-                not_found.append(user_id)
+                # provide an empty queryset. This mimics the behaviour of
+                #   Django, if invalid user IDs are provided in the POST-request
+                queryset = []
 
         # at this point, 'queryset' is filled and can be iterated
         for user in queryset:
             try:
                 user.activate_user()
                 activated.append(user.username)
-            except AttributeError:
-                # this may be reached, if a non existent user ID is passed
-                # TODO: Should this be mentioned in a message?
-                pass
             except MiniUserActivateWithoutVerifiedEmailException:
                 not_activated.append(user.username)
 
@@ -330,17 +326,12 @@ class MiniUserAdmin(admin.ModelAdmin):
                 ERROR,
             )
 
-        # return messages for invalid user ids
-        if len(not_found) == 1:
+        # the method did nothing; this means something unexpected happened,
+        #   i.e. invalid user IDs were provided
+        if not (activated or not_activated):
             self.message_user(
                 request,
-                _('No User object with the given ID ({}) found!'.format(not_found[0])),
-                ERROR,
-            )
-        elif len(not_found) > 1:
-            self.message_user(
-                request,
-                _('No User objects with the given IDs found ({})!'.format(', '.join(not_found))),
+                _('Nothing was done. Probably this means, that no or invalid user IDs were provided.'),
                 ERROR,
             )
     action_bulk_activate_user.short_description = _('Activate selected users')
@@ -356,7 +347,6 @@ class MiniUserAdmin(admin.ModelAdmin):
 
         deactivated = []
         not_deactivated = []
-        not_found = []
 
         # the method is called from 'action_activate_user', so a queryset has
         #   to be constructed...
@@ -364,18 +354,15 @@ class MiniUserAdmin(admin.ModelAdmin):
             try:
                 queryset = [MiniUser.objects.get(pk=user_id)]
             except MiniUser.DoesNotExist:
-                queryset = [None]
-                not_found.append(user_id)
+                # provide an empty queryset. This mimics the behaviour of
+                #   Django, if invalid user IDs are provided in the POST-request
+                queryset = []
 
         # at this point, 'queryset' is filled and can be iterated
         for user in queryset:
             try:
                 user.deactivate_user(request_user=request.user)
                 deactivated.append(user.username)
-            except AttributeError:
-                # this may be reached, if a non existent user ID is passed
-                # TODO: Should this be mentioned in a message?
-                pass
             except MiniUserDeactivateOwnAccountException:
                 not_deactivated.append(user.username)
 
@@ -408,17 +395,12 @@ class MiniUserAdmin(admin.ModelAdmin):
             # if this point is reached, some major fuckup happens!
             raise MiniUserException('This point should not be reachable!')  # pragma: nocover
 
-        # return messages for invalid user ids
-        if len(not_found) == 1:
+            # the method did nothing; this means something unexpected happened,
+        #   i.e. invalid user IDs were provided
+        if not (deactivated or not_deactivated):
             self.message_user(
                 request,
-                _('No User object with the given ID ({}) found!'.format(not_found[0])),
-                ERROR,
-            )
-        elif len(not_found) > 1:
-            self.message_user(
-                request,
-                _('No User objects with the given IDs found ({})!'.format(', '.join(not_found))),
+                _('Nothing was done. Probably this means, that no or invalid user IDs were provided.'),
                 ERROR,
             )
     action_bulk_deactivate_user.short_description = _('Deactivate selected users')

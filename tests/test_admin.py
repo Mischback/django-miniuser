@@ -152,7 +152,10 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
         ma = MiniUserAdmin(MiniUser, self.site)
         u = MiniUser.objects.create(username='user', is_active=False)
 
-        self.assertEqual(ma.activation_status_with_action(u), '{} {}'.format(_boolean_icon(u.is_active), ma.toggle_is_active(u)))
+        self.assertEqual(
+            ma.activation_status_with_action(u),
+            '{} {}'.format(_boolean_icon(u.is_active), ma.toggle_is_active(u))
+        )
 
     @tag('miniuser_settings', 'admin_settings')
     @override_settings(
@@ -337,7 +340,6 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
             )
         )
 
-    @skip('NOT WORKING')
     def test_action_bulk_activate_invalid_user(self):
         """Don't activate invalid user"""
 
@@ -347,7 +349,6 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
 
         # try to activate an invalid user
-        # TODO: This is not working, no valid queryset is constructed
         action_data = {
             ACTION_CHECKBOX_NAME: [999],
             'action': 'action_bulk_activate_user',
@@ -362,10 +363,9 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         messages = list(response.wsgi_request._messages)
         self.assertEqual(
             str(messages[0]),
-            'No User object with the given ID ({}) found!'.format(999)
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
         )
 
-    @skip('NOT WORKING')
     def test_action_bulk_activate_invalid_users(self):
         """Don't activate invalid users"""
 
@@ -375,7 +375,6 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
 
         # try to activate two invalid users
-        # TODO: This is not working, no valid queryset is constructed
         action_data = {
             ACTION_CHECKBOX_NAME: [999, 998],
             'action': 'action_bulk_activate_user',
@@ -390,7 +389,7 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         messages = list(response.wsgi_request._messages)
         self.assertEqual(
             str(messages[0]),
-            'No User objects with the given IDs found ({}, {})!'.format(998, 999)
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
         )
 
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
@@ -412,7 +411,10 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
 
         response = self.client.get(reverse('admin:miniuser-activate-user', args=[999]))
         messages = list(response.wsgi_request._messages)
-        self.assertEqual(str(messages[0]), 'No User object with the given ID ({}) found!'.format(999))
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
 
     def test_action_bulk_deactivate_single_user(self):
         """Deactivate a single user by drop down"""
@@ -464,11 +466,55 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
 
     def test_action_bulk_deactivate_invalid_user(self):
         """Don't deactivate invalid user"""
-        pass
+
+        u = MiniUser.objects.create(username='user', is_active=True)
+        v = MiniUser.objects.create(username='foo', is_active=True)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two invalid users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [999],
+            'action': 'action_bulk_deactivate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # no user is activated
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the corresponding users could not be found
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
 
     def test_action_bulk_deactivate_invalid_users(self):
         """Don't deactivate invalid users"""
-        pass
+
+        u = MiniUser.objects.create(username='user', is_active=True)
+        v = MiniUser.objects.create(username='foo', is_active=True)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two invalid users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [999, 998],
+            'action': 'action_bulk_deactivate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # no user is activated
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the corresponding users could not be found
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
 
     def test_action_deactivate_user(self):
         """Deactivate a single user by button (pass to bulk method)"""
@@ -486,7 +532,10 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
 
         response = self.client.get(reverse('admin:miniuser-deactivate-user', args=[999]))
         messages = list(response.wsgi_request._messages)
-        self.assertEqual(str(messages[0]), 'No User object with the given ID ({}) found!'.format(999))
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
 
     def test_action_deactivate_own_account(self):
 
