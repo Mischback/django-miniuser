@@ -146,6 +146,17 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
 
         self.assertEqual(ma.email_with_status(u), '{} {}'.format(_boolean_icon(u.email_is_verified), u.email))
 
+    def test_activation_status_with_action(self):
+        """Combines the activation status with the appropriate action"""
+
+        ma = MiniUserAdmin(MiniUser, self.site)
+        u = MiniUser.objects.create(username='user', is_active=False)
+
+        self.assertEqual(
+            ma.activation_status_with_action(u),
+            '{} {}'.format(_boolean_icon(u.is_active), ma.toggle_is_active(u))
+        )
+
     @tag('miniuser_settings', 'admin_settings')
     @override_settings(
         MINIUSER_ADMIN_LIST_DISPLAY=['username_color_status'],
@@ -198,7 +209,6 @@ class MiniUserAdminChangeListTest(MiniuserTestCase):
         self.assertIn('delete_selected', actions)
 
         actions = ma.get_actions(request)
-
         self.assertNotIn('delete_selected', actions)
 
 
@@ -224,96 +234,315 @@ class MiniUserAdminActionsTest(MiniuserTestCase):
         response = self.client.get(reverse('admin:miniuser_miniuser_changelist'))
         self.assertNotContains(response, 'delete_selected')
 
-    def test_action_activate(self):
-        """Activation of multiple users"""
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
+    def test_action_bulk_activate_single_user(self):
+        """Activate a single user by drop down"""
 
-        u = MiniUser.objects.create(username='user')
-        v = MiniUser.objects.create(username='foo')
-        w = MiniUser.objects.create(username='bar')
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
 
         # try to activate a single user
         action_data = {
             ACTION_CHECKBOX_NAME: [u.pk],
-            'action': 'action_activate_user',
+            'action': 'action_bulk_activate_user',
         }
-
-        # all users are inactive
-        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, False)
-        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, False)
-        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, False)
-
         response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
 
         # user 'user' is active
-        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, True)
-        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, False)
-        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, False)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
 
         # message indicates the activation of 1 user
         messages = list(response.wsgi_request._messages)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), '1 user was activated successfully.')
+        self.assertEqual(str(messages[0]), 'The user {} was activated successfully.'.format(u.username))
 
-        # try to activate two more users
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
+    def test_action_bulk_activate_multiple_users(self):
+        """Activate multiple users by drop down"""
+
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two users
         action_data = {
-            ACTION_CHECKBOX_NAME: [v.pk, w.pk],
-            'action': 'action_activate_user',
+            ACTION_CHECKBOX_NAME: [u.pk, v.pk],
+            'action': 'action_bulk_activate_user',
         }
-
         response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
 
-        # they got activated
-        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, True)
-        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, True)
+        # both users are active
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
 
-        # another message indicates the activation of two more users
+        # message indicates the activation of 2 users
         messages = list(response.wsgi_request._messages)
-        self.assertEqual(len(messages), 2)
-        self.assertEqual(str(messages[1]), '2 users were activated successfully.')
+        self.assertEqual(
+            str(messages[0]), '{} users were activated successfully ({}, {}).'.format(2, v.username, u.username)
+        )
 
-    def test_action_deactivate(self):
-        """Deactivation of multiple users"""
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
+    def test_action_bulk_activate_single_user_verified_mail(self):
+        """Activate a single user by drop down without verified email"""
+
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate a single user
+        action_data = {
+            ACTION_CHECKBOX_NAME: [u.pk],
+            'action': 'action_bulk_activate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # user 'user' is not actived
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the user could not be activated
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'The user {} could not be activated, because his email address is not verified!'.format(u.username)
+        )
+
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
+    def test_action_bulk_activate_multiple_users_verified_mail(self):
+        """Activate multiple users by drop down without verified email"""
+
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [u.pk, v.pk],
+            'action': 'action_bulk_activate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # both users remain inactive
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates the activation of 2 users
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            '{} users could not be activated, because their email addresses are not verified ({}, {})!'.format(
+                2, v.username, u.username
+            )
+        )
+
+    def test_action_bulk_activate_invalid_user(self):
+        """Don't activate invalid user"""
+
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate an invalid user
+        action_data = {
+            ACTION_CHECKBOX_NAME: [999],
+            'action': 'action_bulk_activate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # no user is activated
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the corresponding user could not be found
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
+
+    def test_action_bulk_activate_invalid_users(self):
+        """Don't activate invalid users"""
+
+        u = MiniUser.objects.create(username='user', is_active=False)
+        v = MiniUser.objects.create(username='foo', is_active=False)
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two invalid users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [999, 998],
+            'action': 'action_bulk_activate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # no user is activated
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the corresponding users could not be found
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
+
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
+    def test_action_activate_user(self):
+        """Activate a single user by button (pass to bulk method)
+
+        Additionally tests invalid user IDs."""
+
+        m = MiniUser.objects.create(username='foo', is_active=False)
+
+        response = self.client.get(reverse('admin:miniuser-activate-user', args=[m.pk]))
+
+        # the local reference doesn't get updated. So fetch the user again...
+        n = MiniUser.objects.get(pk=m.pk)
+        self.assertTrue(n.is_active)
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(str(messages[0]), 'The user {} was activated successfully.'.format(n.username))
+        self.assertRedirects(response, reverse('admin:miniuser_miniuser_changelist'))
+
+        response = self.client.get(reverse('admin:miniuser-activate-user', args=[999]))
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
+
+    def test_action_bulk_deactivate_single_user(self):
+        """Deactivate a single user by drop down"""
 
         u = MiniUser.objects.create(username='user', is_active=True)
         v = MiniUser.objects.create(username='foo', is_active=True)
-        w = MiniUser.objects.create(username='bar', is_active=True)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
 
-        # try to activate a single user
+        # try to deactivate a single user
         action_data = {
             ACTION_CHECKBOX_NAME: [u.pk],
-            'action': 'action_deactivate_user',
+            'action': 'action_bulk_deactivate_user',
         }
-
-        # all users are inactive
-        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, True)
-        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, True)
-        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, True)
-
         response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
 
-        # user 'user' is active
-        self.assertEqual(MiniUser.objects.get(pk=u.pk).is_active, False)
-        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, True)
-        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, True)
+        # user 'user' is deactived
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
 
         # message indicates the activation of 1 user
         messages = list(response.wsgi_request._messages)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(str(messages[0]), '1 user was deactivated successfully.')
+        self.assertEqual(str(messages[0]), 'The user {} was deactivated successfully.'.format(u.username))
 
-        # try to activate two more users
+    def test_action_bulk_deactivate_multiple_users(self):
+        """Deactivate multiple users by drop down"""
+
+        u = MiniUser.objects.create(username='user', is_active=True)
+        v = MiniUser.objects.create(username='foo', is_active=True)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to deactivate two users
         action_data = {
-            ACTION_CHECKBOX_NAME: [v.pk, w.pk],
-            'action': 'action_deactivate_user',
+            ACTION_CHECKBOX_NAME: [u.pk, v.pk],
+            'action': 'action_bulk_deactivate_user',
         }
-
         response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
 
-        # they got activated
-        self.assertEqual(MiniUser.objects.get(pk=v.pk).is_active, False)
-        self.assertEqual(MiniUser.objects.get(pk=w.pk).is_active, False)
+        # both users are deactived
+        self.assertFalse(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertFalse(MiniUser.objects.get(pk=v.pk).is_active)
 
-        # another message indicates the activation of two more users
+        # message indicates the activation of 2 users
         messages = list(response.wsgi_request._messages)
-        self.assertEqual(len(messages), 2)
-        self.assertEqual(str(messages[1]), '2 users were deactivated successfully.')
+        self.assertEqual(
+            str(messages[0]), '{} users were deactivated successfully ({}, {}).'.format(2, v.username, u.username)
+        )
+
+    def test_action_bulk_deactivate_invalid_user(self):
+        """Don't deactivate invalid user"""
+
+        u = MiniUser.objects.create(username='user', is_active=True)
+        v = MiniUser.objects.create(username='foo', is_active=True)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two invalid users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [999],
+            'action': 'action_bulk_deactivate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # no user is activated
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the corresponding users could not be found
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
+
+    def test_action_bulk_deactivate_invalid_users(self):
+        """Don't deactivate invalid users"""
+
+        u = MiniUser.objects.create(username='user', is_active=True)
+        v = MiniUser.objects.create(username='foo', is_active=True)
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # try to activate two invalid users
+        action_data = {
+            ACTION_CHECKBOX_NAME: [999, 998],
+            'action': 'action_bulk_deactivate_user',
+        }
+        response = self.client.post(reverse('admin:miniuser_miniuser_changelist'), action_data, follow=True)
+
+        # no user is activated
+        self.assertTrue(MiniUser.objects.get(pk=u.pk).is_active)
+        self.assertTrue(MiniUser.objects.get(pk=v.pk).is_active)
+
+        # message indicates, that the corresponding users could not be found
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
+
+    def test_action_deactivate_user(self):
+        """Deactivate a single user by button (pass to bulk method)"""
+
+        m = MiniUser.objects.create(username='foo', is_active=True)
+
+        response = self.client.get(reverse('admin:miniuser-deactivate-user', args=[m.pk]))
+
+        # the local reference doesn't get updated. So fetch the user again...
+        n = MiniUser.objects.get(pk=m.pk)
+        self.assertFalse(n.is_active)
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(str(messages[0]), 'The user {} was deactivated successfully.'.format(n.username))
+        self.assertRedirects(response, reverse('admin:miniuser_miniuser_changelist'))
+
+        response = self.client.get(reverse('admin:miniuser-deactivate-user', args=[999]))
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'Nothing was done. Probably this means, that no or invalid user IDs were provided.'
+        )
+
+    def test_action_deactivate_own_account(self):
+
+        response = self.client.get(reverse('admin:miniuser-deactivate-user', args=[self.superuser.pk]))
+        self.assertTrue(MiniUser.objects.get(pk=self.superuser.pk).is_active)
+        messages = list(response.wsgi_request._messages)
+        self.assertEqual(
+            str(messages[0]),
+            'The user {} could not be deactivated, because this is your own account!'.format(self.superuser.username)
+        )

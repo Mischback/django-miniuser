@@ -10,7 +10,9 @@ from unittest import skip  # noqa
 from django.test import override_settings, tag
 
 # app imports
-from miniuser.exceptions import MiniUserConfigurationException
+from miniuser.exceptions import (
+    MiniUserConfigurationException, MiniUserObjectActionException,
+)
 from miniuser.models import MiniUser
 
 # app imports
@@ -96,9 +98,9 @@ class MiniUserManagerTest(MiniuserTestCase):
         MINIUSER_REQUIRE_VALID_EMAIL = False, so the user should be created
         without email address"""
         m = MiniUser.objects.create_user('foo')
-        # actually m.email is a blank string
+
         self.assertFalse(m.email)
-        self.assertEqual(m.email, '')
+        self.assertEqual(m.email, None)
 
     @tag('miniuser_settings')
     @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
@@ -175,8 +177,64 @@ class MiniUserManagerTest(MiniuserTestCase):
 class MiniUserModelTest(MiniuserTestCase):
     """Tests targeting the actual MiniUser model"""
 
-    def test_string(self):
-        """Tests the __str__-method"""
-        m = MiniUser.objects.create(username='django')
-        self.assertTrue(isinstance(m, MiniUser))
-        self.assertEqual(m.__str__(), m.username)
+    def test_fix_empty_email(self):
+        """Empty email should be cleaned to 'None'"""
+
+        m = MiniUser.objects.create(username='foo', email='')
+        m.clean()
+        self.assertNotEqual(m.email, '')
+        self.assertEqual(m.email, None)
+
+        n = MiniUser.objects.create(username='bar', email='valid@localhost')
+        n.clean()
+        self.assertNotEqual(n.email, '')
+        self.assertNotEqual(n.email, None)
+        self.assertEqual(n.email, 'valid@localhost')
+
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=False)
+    def test_activate_user(self):
+        """Inactive user object should be activated"""
+
+        m = MiniUser.objects.create(username='foo', is_active=False)
+        m.activate_user()
+        self.assertTrue(m.is_active)
+
+        # do nothing, if the user is already active
+        n = MiniUser.objects.create(username='bar', is_active=True)
+        n.activate_user()
+        self.assertTrue(n.is_active)
+
+    @override_settings(MINIUSER_REQUIRE_VALID_EMAIL=True)
+    def test_activate_user_require_mail(self):
+        """asdf"""
+
+        m = MiniUser.objects.create(username='foo', is_active=False, email_is_verified=True)
+        m.activate_user()
+        self.assertTrue(m.is_active)
+
+        # raise exception without verified email
+        n = MiniUser.objects.create(username='bar', email_is_verified=False)
+        with self.assertRaisesMessage(
+            MiniUserObjectActionException,
+                'You tried to activate an User-object, that has no '
+                'verified email address, but your project requires the '
+                'verification of email addresses.'
+        ):
+            n.activate_user()  # noqa
+
+    def test_deactivate_user(self):
+        """Active user objects should be deactivated"""
+
+        m = MiniUser.objects.create(username='foo', is_active=True)
+        m.deactivate_user()
+        self.assertFalse(m.is_active)
+
+        # do nothing, if the user is already deactivated
+        n = MiniUser.objects.create(username='bar', is_active=False)
+        n.deactivate_user()
+        self.assertFalse(n.is_active)
+
+        # don't deactivate the requesting user
+        o = MiniUser.objects.create(username='asdf', is_active=False)
+        with self.assertRaisesMessage(MiniUserObjectActionException, 'You can not deactivate yourself.'):
+            o.deactivate_user(o)  # noqa

@@ -12,6 +12,8 @@ import re
 from django.apps import AppConfig
 from django.conf import settings
 from django.core.checks import Error, Info, Warning, register
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.utils.translation import ugettext_lazy as _
 
 MESSAGE_BOOL = "Value of {} has to be a boolean value."
@@ -88,8 +90,9 @@ E009 = Error(
         "can only contain the following values: 'username_color_status', "
         "'username_character_status', 'username', 'email', 'first_name', "
         "'last_name', 'status_aggregated', 'is_active', 'is_staff', "
-        "'is_superuser', 'email_is_verified', 'last_login', 'registration_date' "
-        "and 'email_with_status'."),
+        "'is_superuser', 'email_is_verified', 'last_login', 'date_joined' "
+        "'email_with_status', 'toggle_is_active' and "
+        "'activation_status_with_action'."),
     id='miniuser.e009',
 )
 
@@ -100,11 +103,23 @@ E010 = Error(
 )
 
 E011 = Error(
-    _("AUTH_USER_MODEL has to be 'miniuser.MiniUser'"),
+    _("AUTH_USER_MODEL has to be 'miniuser.MiniUser.'"),
     hint=_(
         "Please check your settings and ensure, that you pointed the "
         "AUTH_USER_MODEL to django-miniuser's MiniUser-class."),
     id='miniuser.e011',
+)
+
+E012 = Error(
+    _("Value of MINIUSER_ADMIN_SIGNUP_NOTIFICATION is not valid."),
+    hint=_(
+        "Please check your settings and ensure, that the setting is set to a "
+        "boolean 'False' or follown the specification of "
+        "{'username': NOTIFICATION_METHODS,}, where 'username' is a valid "
+        "superuser username and NOTIFICATION_METHODS is a list or tuple of "
+        "supported methods (currently: 'mail')."
+    ),
+    id='miniuser.e012',
 )
 
 I001 = Info(
@@ -165,8 +180,10 @@ def check_correct_values(app_configs, **kwargs):
                 'is_superuser',
                 'email_is_verified',
                 'last_login',
-                'registration_date',
-                'email_with_status'
+                'date_joined',
+                'email_with_status',
+                'toggle_is_active',
+                'activation_status_with_action',
             ):
                 errors.append(E009)
                 break
@@ -177,6 +194,32 @@ def check_correct_values(app_configs, **kwargs):
 
     if not settings.AUTH_USER_MODEL == 'miniuser.MiniUser':
         errors.append(E011)
+
+    # E012 needs a little more effort, because the structure and the values
+    #   inside of the structure need attention
+    # the 'e12' controls, if the error has to be raised; this is not like the
+    #    most elegant way, but it works...
+    e12 = False
+    if (
+        isinstance(settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION, bool) and
+        settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION is True
+    ):
+        e12 = True
+    else:
+        for tup in settings.MINIUSER_ADMIN_SIGNUP_NOTIFICATION:
+            try:
+                validate_email(tup[1])
+            except (IndexError, ValidationError):
+                e12 = True
+                break
+            for method in tup[2]:
+                # this is the place to list available methods of notification
+                if method not in ('mail'):
+                    e12 = True
+                    break
+    # append 'E012' if any error was found
+    if e12:
+        errors.append(E012)
 
     return errors
 
@@ -251,6 +294,10 @@ class MiniUserConfig(AppConfig):
         set_app_default_setting('MINIUSER_ADMIN_STATUS_CHAR_STAFF', '$')
         """Specifies the character that indicates a user with staff-status.
         Has to be a single character!"""
+
+        set_app_default_setting('MINIUSER_ADMIN_SIGNUP_NOTIFICATION', False)
+        """Will an email be send to all superusers, when somebody registers a
+        new account?"""
 
         set_app_default_setting('AUTH_USER_MODEL', 'miniuser.MiniUser')
         """Sets the app's MiniUser class as Django's AUTH_USER_MODEL.

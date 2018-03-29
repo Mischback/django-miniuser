@@ -5,16 +5,15 @@ from __future__ import unicode_literals
 
 # Django imports
 from django.conf import settings
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import BaseUserManager, PermissionsMixin
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 # app imports
-from .exceptions import MiniUserConfigurationException
+from .exceptions import (
+    MiniUserActivateWithoutVerifiedEmailException,
+    MiniUserConfigurationException, MiniUserDeactivateOwnAccountException,
+)
 
 
 class MiniUserManager(BaseUserManager):
@@ -31,7 +30,7 @@ class MiniUserManager(BaseUserManager):
 
         # normalize username and email
         username = self.model.normalize_username(username)
-        email = self.normalize_email(email).lower()
+        email = self.normalize_email(email).lower().strip()
 
         user = self.model(
             username=username,
@@ -39,16 +38,15 @@ class MiniUserManager(BaseUserManager):
             **extra_fields
         )
 
+        # apply MINIUSER_DEFAULT_ACTIVE
+        user.is_active = settings.MINIUSER_DEFAULT_ACTIVE
+
         # set the password
         # TODO: Is some sort of validation included?
         user.set_password(password)
 
-        # apply the app's activation mode
-        user.is_active = settings.MINIUSER_DEFAULT_ACTIVE
-
-        # deactivate user without usable passwords
-        if not user.has_usable_password():
-            user.is_active = False
+        # last time cleaning
+        user.clean()
 
         user.save(using=self._db)
 
@@ -66,6 +64,8 @@ class MiniUserManager(BaseUserManager):
         user.is_active = True
         user.is_superuser = True
         user.is_staff = True
+
+        # and now finally save the superuser
         user.save()
 
         return user
@@ -96,25 +96,9 @@ class MiniUserManager(BaseUserManager):
             raise MiniUserConfigurationException(_("'MINIUSER_LOGIN_NAME' has an undefined value!"))
 
 
-@python_2_unicode_compatible
-class MiniUser(AbstractBaseUser, PermissionsMixin):
+class MiniUser(AbstractUser):
     """The user class extends the AbstractBaseUser and adds some custom fields
     to the default Django user."""
-
-    username_validator = UnicodeUsernameValidator()
-    """Make use of Django's built-in username validation"""
-
-    username = models.CharField(
-        _('username'),
-        max_length=150,
-        unique=True,
-        help_text=_('Required. 150 characters or less.'),
-        validators=[username_validator],
-        error_messages={
-            'unique': _('A user with that username already exists...')
-        }
-    )
-    """The name of the user, that may be used for login. Must be unique"""
 
     email = models.EmailField(
         _('email address'),
@@ -122,66 +106,18 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
         unique=True,
         blank=True,
         null=True,
+        default=None,
         error_messages={
             'unique': _('This mail address is already in use....')
         }
     )
     """The email address of the user. Must be unique"""
 
-    first_name = models.CharField(
-        _('first name'),
-        max_length=50,
-        blank=True,
-        help_text=_('Optional. 50 characters or less.')
-    )
-    """The first name of the user, optional."""
-
-    last_name = models.CharField(
-        _('last name'),
-        max_length=50,
-        blank=True,
-        help_text=_('Optional. 50 characters or less.')
-    )
-    """The last name of the user, optional."""
-
-    is_active = models.BooleanField(
-        _('active'),
-        default=False,
-        help_text=_(
-            'Designates whether this user should be treated as active. '
-            'Unselect this instead of deleting accounts.'
-        )
-    )
-    """This flag indicates, if the user is active. Meaning: the user is able
-    to log in."""
-
-    is_staff = models.BooleanField(
-        _('staff status'),
-        default=False,
-        help_text=_('Designates whether the user can log into this admin site.')
-    )
-    """This flag inidcates, if the user belongs to the site's staff and will
-    be able to log into the admin part of Django."""
-
     email_is_verified = models.BooleanField(
         _('email verification status'),
         default=False,
         help_text=_('Designates whether the user already verified his mail address.')
     )
-
-    registration_date = models.DateTimeField(
-        _('date of registration'),
-        default=timezone.now,
-        editable=False
-    )
-    """The date of the registration. Will be set on account creation."""
-
-    last_login = models.DateTimeField(
-        _('date of last login'),
-        # TODO: will default to the account creation timestamp. Must be adjusted during login.
-        default=timezone.now
-    )
-    """The date of the last login. Will be updated on every successfull login"""
 
     # apply the MiniUserManager
     objects = MiniUserManager()
@@ -190,21 +126,43 @@ class MiniUser(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email']
 
-    class Meta:
-        verbose_name = _('user')
-        verbose_name_plural = _('users')
+    def clean(self):
+        """Provides some custom validation steps for MiniUser objects"""
 
-    def __str__(self):
-        return self.get_username()
+        # ensure that an empty email will be stored as 'None'
+        if self.email == '':
+            self.email = None
 
-    def get_full_name(self):
-        """Prior to Django 2.0 this method was required.
+        # deactivate user without usable passwords
+        if not self.has_usable_password():
+            self.is_active = False
 
-        It should not be used in the app's admin pages."""
-        return self.get_username()  # pragma: nocover
+    def activate_user(self):
+        """Activates an account by setting 'is_active' = True"""
 
-    def get_short_name(self):
-        """Prior to Django 2.0 this method was required.
+        if settings.MINIUSER_REQUIRE_VALID_EMAIL and not self.email_is_verified:
+            raise MiniUserActivateWithoutVerifiedEmailException(
+                _(
+                    'You tried to activate an User-object, that has no '
+                    'verified email address, but your project requires the '
+                    'verification of email addresses.'
+                )
+            )
 
-        It should not be used in the app's admin pages."""
-        return self.get_username()
+        if not self.is_active:
+            self.is_active = True
+            # TODO: Can this be optimised? Check model's save()-method!
+            self.save()
+
+    def deactivate_user(self, request_user=None):
+        """Deactivates an account by setting 'is_active' = False"""
+
+        # if this method is called from a view, ensure, that the requesting
+        # user can not deactivate himself.
+        if self == request_user:
+            raise MiniUserDeactivateOwnAccountException(_('You can not deactivate yourself.'))
+
+        if self.is_active:
+            self.is_active = False
+            # TODO: Can this be optimised? Check model's save()-method!
+            self.save()

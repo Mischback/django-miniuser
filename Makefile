@@ -43,7 +43,7 @@ compilemessages:
 	$(MAKE) admin admin_cmd=compilemessages
 
 # performs the tests and measures code coverage
-coverage:   clean test
+coverage: clean test
 	tox -e coverage-report
 
 # django-admin.py createsuperuser

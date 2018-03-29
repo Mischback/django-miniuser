@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.staticfiles',   # introduced to make the admin usable inside tox
     'miniuser.apps.MiniUserConfig'
@@ -60,7 +61,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 # 'django.template.context_processors.i18n',
                 # 'django.template.context_processors.static',
-                # 'django.contrib.messages.context_processors.messages',
+                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -81,3 +82,15 @@ STATIC_URL = '/static/'
 
 # this is a minimum test requirement
 SECRET_KEY = 'only-for-testing'
+
+
+# currently relevant for development!
+# SEE #8802dd1!
+
+MINIUSER_DEFAULT_ACTIVE = False
+MINIUSER_ADMIN_SIGNUP_NOTIFICATION = (
+    ('django', 'django@localhost', ('mail', )),
+)
+
+# just for development. Doesn't work for tests (locmem?)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

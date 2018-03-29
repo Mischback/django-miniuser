@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+{% if form.errors %}
+  {{ form.non_field_errors }}
+{% endif %}
+
+<div class="signup-form">
+  <h1>Account Sign Up</h1>
+  <form method="post" action="{% url 'miniuser:signup' %}">
+  {% for field in form.visible_fields %}
+    {{ field.label_tag }}
+    {{ field.errors }}
+    {{ field }}
+  {% endfor %}
+
+  {% for hidden in form.hidden_fields %}
+    {{ hidden }}
+  {% endfor %}
+  {% csrf_token %}
+  <input type="submit" value="Create new account" />
+  </form>
+</div>
+{% endblock %}

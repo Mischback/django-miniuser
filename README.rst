@@ -47,7 +47,7 @@ Version:
     0.1.0
 
 Django Version:
-    1.10, 1.11, 2.0
+    1.11, 2.0
 
 Python Version:
     2.7, 3.4, 3.5, 3.6
